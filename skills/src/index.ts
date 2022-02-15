@@ -10,6 +10,7 @@ import 'dotenv/config.js';
 import { connectDb } from './services/mongodb';
 import { skillRouter } from './routes/skills';
 import { errorHandler } from './middlewares/errorHandler';
+import swaggerDocument from './swagger/skill-api.json';
 
 const PORT = process.env.PORT || 4000;
 
@@ -28,12 +29,13 @@ const startServer = async () => {
         //middleware
         app.use(bodyParser.json());
 
-        // api-documentation
-        //  app.use(
-        //     '/api/todo/task-docs',
-        //     swaggerUi.serve,
-        //     swaggerUi.setup(swaggerDocument)
-        // );
+        // TODO: update JSON file
+        //api-documentation
+        app.use(
+            '/api/skills/skill-docs',
+            swaggerUi.serve,
+            swaggerUi.setup(swaggerDocument)
+        );
         app.use(skillRouter);
 
         // error-handler

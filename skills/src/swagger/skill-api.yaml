@@ -1,0 +1,231 @@
+openapi: 3.0.1
+info:
+    title: skills-service
+    description: This is a sample skills microservice
+    version: 1.0.0
+servers:
+    - url: localhost
+paths:
+    /api/skills/{id}:
+        get:
+            tags:
+                - skills
+            summary: get a single skill by id
+            operationId: getSkill
+            parameters:
+                - $ref: '#/components/parameters/id'
+            responses:
+                200:
+                    description: successful operation
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/SkillData'
+                400:
+                    description: unsuccesful operation
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    errors:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/Errors'
+
+    /api/skills/all:
+        get:
+            tags:
+                - skills
+            summary: retrieve all skills from database
+            operationId: getAllSkills
+            responses:
+                200:
+                    description: successful operation
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/SkillData'
+
+                400:
+                    description: unsuccesful operation
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    errors:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/Errors'
+    /api/skills/destroy:
+        post:
+            tags:
+                - skills
+            summary: delete a skill by id
+            operationId: deleteTask
+            requestBody:
+                description: delete skill from the backend
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            properties:
+                                id:
+                                    type: string
+            responses:
+                202:
+                    description: successful operation
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    data:
+                                        type: boolean
+
+                400:
+                    description: unsuccesful operation
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    errors:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/Errors'
+    /api/skills/add:
+        post:
+            tags:
+                - skills
+            summary: add a skill
+            operationId: addSkill
+            requestBody:
+                description: add skill to the backend
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            properties:
+                                name:
+                                    type: string
+
+            responses:
+                201:
+                    description: successful operation
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/SkillData'
+
+                400:
+                    description: unsuccesful operation
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    errors:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/Errors'
+    /api/skills/update:
+        post:
+            tags:
+                - skills
+            summary: edit a skill
+            operationId: EditSkill
+            requestBody:
+                description: edit skill data in the backend
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            properties:
+                                Id:
+                                    type: string
+                                title:
+                                    type: string
+                                body:
+                                    type: string
+                                completed:
+                                    type: string
+            responses:
+                201:
+                    description: successful operation
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/SkillData'
+
+                400:
+                    description: unsuccesful operation
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    errors:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/Errors'
+components:
+    parameters:
+        id:
+            name: id
+            in: path
+            description: Task Id values that need to be considered for filter
+            required: true
+            schema:
+                type: string
+    schemas:
+        Errors:
+            type: object
+            properties:
+                message:
+                    type: string
+                field:
+                    nullable: true
+                    type: string
+        SkillData:
+            type: object
+            properties:
+                _id:
+                    type: string
+                name:
+                    type: string
+                version:
+                    type: number
+                dbStatus:
+                    type: string
+                course:
+                    $ref: '#/components/schemas/Course'
+                books:
+                    $ref: '#/components/schemas/Book'
+        Course:
+            type: object
+            nullable: true
+            properties:
+                _id:
+                    type: string
+                name:
+                    type: string
+        Book:
+            type: object
+            nullable: true
+            properties:
+                _id:
+                    type: string
+                name:
+                    type: string
