@@ -150,14 +150,12 @@ paths:
                     application/json:
                         schema:
                             properties:
-                                Id:
+                                id:
                                     type: string
-                                title:
-                                    type: string
-                                body:
-                                    type: string
-                                completed:
-                                    type: string
+                                course:
+                                    $ref: '#/components/schemas/Course'
+                                book:
+                                    $ref: '#/components/schemas/Book'
             responses:
                 201:
                     description: successful operation

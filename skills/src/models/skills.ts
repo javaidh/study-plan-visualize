@@ -4,12 +4,6 @@ import { connectDb } from '../services/mongodb';
 // TODO: convert them into one import
 import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
-import { ObjectID } from 'bson';
-
-interface insertOperation {
-    acknowledged: boolean;
-    insertedId: ObjectId;
-}
 
 export enum databaseStatus {
     inUse = 'active',
@@ -21,8 +15,6 @@ interface returnSkillDocument {
     name?: string;
     course?: { _id: ObjectId; name: string };
     book?: { _id: ObjectId; name: string };
-    // we are using version property to keep track of events emitted by this service
-    // In other services we have to process events in order to avoid data issues
     version?: number;
     dbStatus?: databaseStatus;
 }
@@ -44,10 +36,7 @@ export class Skills {
     ): Promise<returnSkillDocument[] | undefined> {
         try {
             const db = await connectDb();
-            const {
-                acknowledged,
-                insertedId
-            }: InsertOneResult<insertOperation> = await db
+            const { acknowledged, insertedId }: InsertOneResult = await db
                 .collection('skills')
                 .insertOne(skillProps);
             if (!acknowledged)
@@ -141,14 +130,12 @@ export class Skills {
         }
     }
 
-    //: Promise<skillDocument[] | undefined>
     static async deleteSkillById(_id: ObjectId, version: number) {
         try {
             const db = await connectDb();
             const result: UpdateResult = await db
                 .collection('skills')
                 /// when we delete we dont remove database entry we just change the status to inactive
-                // TODO: we have to change the version number aswell
                 .updateOne(
                     { _id },
                     {
@@ -165,25 +152,64 @@ export class Skills {
         }
     }
 
-    // static normalizeUserProps(userAttrs: userDocument): {
-    //     email: string;
-    //     id: string;
-    // } {
-    //     // we are using this function to provide consistent response between different microservices
-    //     const modifiedId = { id: userAttrs._id };
-    //     // add Id field to the userAttrs
-    //     const modifiedUser = Object.assign(modifiedId, userAttrs);
-    //     // remove _id field and password from the userAttrs
-    //     const transformedUser = JSON.stringify(
-    //         modifiedUser,
-    //         function (key, value) {
-    //             if (key === 'password' || key === '_id') return undefined;
-    //             else {
-    //                 return value;
-    //             }
-    //         }
-    //     );
-    //     // return JSON object
-    //     return JSON.parse(transformedUser);
-    // }
+    static async updateSkill(updateProps: {
+        _id: ObjectId;
+        version: number;
+        course?: { _id: ObjectId; name: String };
+        book?: { _id: ObjectId; name: String };
+    }) {
+        try {
+            const db = await connectDb();
+            const { _id, version, course, book } = updateProps;
+
+            if (course && book) {
+                const result: UpdateResult = await db
+                    .collection('skills')
+                    .updateOne(
+                        { _id },
+                        {
+                            $set: {
+                                version: version,
+                                course: course,
+                                book: book
+                            }
+                        }
+                    );
+                return result.acknowledged;
+            }
+
+            if (course && !book) {
+                const result: UpdateResult = await db
+                    .collection('skills')
+                    .updateOne(
+                        { _id },
+                        {
+                            $set: {
+                                version: version,
+                                course: course
+                            }
+                        }
+                    );
+                return result.acknowledged;
+            }
+
+            if (!course && book) {
+                const result: UpdateResult = await db
+                    .collection('skills')
+                    .updateOne(
+                        { _id },
+                        {
+                            $set: {
+                                version: version,
+                                book: book
+                            }
+                        }
+                    );
+                return result.acknowledged;
+            }
+        } catch (err) {
+            logErrorMessage(err);
+            throw new DatabaseErrors('Unable to retrieve skill from database');
+        }
+    }
 }
