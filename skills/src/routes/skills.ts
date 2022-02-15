@@ -1,9 +1,10 @@
-import express, { NextFunction, Response } from 'express';
+import express, { NextFunction, Response, Request } from 'express';
 import { ObjectId } from 'mongodb';
 import { ReqAnnotateBodyString } from '../types/interfaceRequest';
 import { Skills, databaseStatus } from '../models/skills';
 import { BadRequestError } from '../errors/badRequestError';
 import { logErrorMessage } from '../errors/customError';
+import { DatabaseErrors } from '../errors/databaseErrors';
 
 const router = express.Router();
 
@@ -92,7 +93,45 @@ router.post(
         }
     }
 );
-
+/*
+_id: ObjectId;
+        version: number;
+        course?: { _id: ObjectId; name: String };
+        book?: { _id: ObjectId; name: String };
+*/
 // update skills
+router.post(
+    '/api/skills/update',
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            let { id, course, book } = req.body;
+            if (!id)
+                throw new BadRequestError('please provide id to update skill');
+            const _id = new ObjectId(id);
+            course ? (course._id = new ObjectId(course._id)) : undefined;
+            book ? (book._id = new ObjectId(book._id)) : undefined;
+            // determine maxVersion inside skills collection and assign maxVersion + 1 to new variable
+            let version: number;
+            const maxVersionDocArray = await Skills.maxVersion();
+            const maxVersionDoc = maxVersionDocArray[0];
+            version = maxVersionDoc.version ? maxVersionDoc.version + 1 : 1;
+
+            const updateSkill = await Skills.updateSkill({
+                _id,
+                version,
+                course,
+                book
+            });
+
+            if (!updateSkill)
+                throw new DatabaseErrors('unable to update fields');
+            const skill = await Skills.getSkillById(_id);
+            res.status(201).send({ data: skill });
+        } catch (err) {
+            logErrorMessage(err);
+            next(err);
+        }
+    }
+);
 
 export { router as skillRouter };
