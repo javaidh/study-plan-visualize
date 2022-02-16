@@ -230,11 +230,8 @@
                                     "id": {
                                         "type": "string"
                                     },
-                                    "course": {
-                                        "$ref": "#/components/schemas/Course"
-                                    },
-                                    "book": {
-                                        "$ref": "#/components/schemas/Book"
+                                    "name": {
+                                        "type": "string"
                                     }
                                 }
                             }
