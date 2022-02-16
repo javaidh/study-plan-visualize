@@ -1,5 +1,8 @@
 import express, { NextFunction, Response, Request } from 'express';
 import { ObjectId } from 'mongodb';
+
+import { natsWrapper } from '../nats-wrapper';
+import { skillCreatedPublisher } from '../events/publishers';
 import { ReqAnnotateBodyString } from '../types/interfaceRequest';
 import { Skills, databaseStatus } from '../models/skills';
 import { BadRequestError } from '../errors/badRequestError';
@@ -32,8 +35,24 @@ router.post(
             const maxVersionDoc = maxVersionDocArray[0];
             version = maxVersionDoc.version ? maxVersionDoc.version + 1 : 1;
 
-            const skill = await Skills.insertSkill({ name, version, dbStatus });
-            res.status(201).send({ data: skill });
+            const skillCreated = await Skills.insertSkill({
+                name,
+                version,
+                dbStatus
+            });
+            if (!skillCreated) throw new Error('unable to create skill');
+            const skillDoc = skillCreated[0];
+            if (!skillDoc.name)
+                throw new Error(
+                    'we need skill name to publish skill:created event'
+                );
+
+            // publish skillCreatedEvent
+            await new skillCreatedPublisher(natsWrapper.client).publish({
+                _id: skillDoc._id.toString(),
+                name: skillDoc.name
+            });
+            res.status(201).send({ data: skillCreated });
         } catch (err) {
             logErrorMessage(err);
             next(err);

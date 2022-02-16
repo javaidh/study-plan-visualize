@@ -7,6 +7,8 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import 'dotenv/config.js';
 
 // inside module imports
+import { natsWrapper } from './nats-wrapper';
+import { SkillCreatedListner } from './events/listeners';
 import { connectDb } from './services/mongodb';
 import { skillRouter } from './routes/skills';
 import { errorHandler } from './middlewares/errorHandler';
@@ -23,6 +25,17 @@ const startServer = async () => {
         if (!process.env.MONGO_DB_CONNECTION_STRING)
             throw new Error('environment variable not defined');
 
+        // connect to nats
+        await natsWrapper.connect('studyplan', 'asdf', 'http://nats-srv:4222');
+        // gracefully shutdown nats if nats try to close
+        natsWrapper.client.on('close', () => {
+            console.log('nats connection closed');
+            process.exit();
+        });
+
+        new SkillCreatedListner(natsWrapper.client).listen();
+        process.on('SIGINT', () => natsWrapper.client.close());
+        process.on('SIGTERM', () => natsWrapper.client.close());
         // connect to db
         await connectDb();
 
