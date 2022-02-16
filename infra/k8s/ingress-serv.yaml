@@ -16,3 +16,10 @@ spec:
                 name: skill-srv
                 port:
                   number: 3000
+          - path: /api/programming/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: programming-srv
+                port:
+                  number: 3000

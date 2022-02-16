@@ -53,11 +53,12 @@ export class ProgrammingLng {
             );
         }
     }
-
+    // TODO: This method will throw error if no collection exists
     static async maxVersionInDb(): Promise<
         WithId<returnProgrammingLngDocument>[]
     > {
         try {
+            // this method assumes you have collection already created
             const db = await connectDb();
             const result: Promise<WithId<returnProgrammingLngDocument>[]> = db
                 .collection('programming')
@@ -232,18 +233,18 @@ export class ProgrammingLng {
             );
         }
     }
-    // we dont need to increment version in database
     static async updateProgrammingLngName(updateProps: {
         _id: ObjectId;
         name: string;
+        version: number;
     }) {
         try {
-            const { _id, name } = updateProps;
+            const { _id, name, version } = updateProps;
             const db = await connectDb();
 
             const result: UpdateResult = await db
                 .collection('programming')
-                .updateOne({ _id }, { $set: { name: name } });
+                .updateOne({ _id }, { $set: { name: name, version: version } });
             return result.acknowledged;
         } catch (err) {
             logErrorMessage(err);
@@ -257,6 +258,7 @@ export class ProgrammingLng {
         try {
             let version: number;
             const maxVersionDocArray = await ProgrammingLng.maxVersionInDb();
+            if (!maxVersionDocArray.length) version = 1;
             const maxVersionDoc = maxVersionDocArray[0];
             version = maxVersionDoc.version ? maxVersionDoc.version + 1 : 1;
             return version;

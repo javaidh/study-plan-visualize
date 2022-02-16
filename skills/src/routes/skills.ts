@@ -4,7 +4,8 @@ import { ObjectId } from 'mongodb';
 import { natsWrapper } from '../nats-wrapper';
 import {
     skillCreatedPublisher,
-    skillDeletedPublisher
+    skillDeletedPublisher,
+    skillUpdatedPublisher
 } from '../events/publishers';
 import { ReqAnnotateBodyString } from '../types/interfaceRequest';
 import { Skills, databaseStatus } from '../models/skills';
@@ -39,7 +40,7 @@ router.post(
             });
             if (!skillCreated) throw new Error('unable to create skill');
             const skillDoc = skillCreated[0];
-            if (!skillDoc.name || !skillDoc.version)
+            if (!skillDoc.name || !skillDoc.version || !skillDoc.dbStatus)
                 throw new Error(
                     'we need skill name to publish skill:created event'
                 );
@@ -48,7 +49,8 @@ router.post(
             await new skillCreatedPublisher(natsWrapper.client).publish({
                 _id: skillDoc._id.toString(),
                 name: skillDoc.name,
-                version: skillDoc.version
+                version: skillDoc.version,
+                dbStatus: skillDoc.dbStatus
             });
             res.status(201).send({ data: skillCreated });
         } catch (err) {
@@ -105,13 +107,14 @@ router.post(
             const inactiveSkill = await Skills.getSkillById(_id);
             if (skillDeleted && inactiveSkill) {
                 const skillDoc = inactiveSkill[0];
-                if (!skillDoc.version)
+                if (!skillDoc.version || !skillDoc.dbStatus)
                     throw new Error(
                         'we need skill version to publish this event'
                     );
                 await new skillDeletedPublisher(natsWrapper.client).publish({
                     _id: skillDoc._id.toString(),
-                    version: skillDoc.version
+                    version: skillDoc.version,
+                    dbStatus: skillDoc.dbStatus
                 });
             }
             res.status(201).send({ data: skillDeleted });
@@ -156,7 +159,7 @@ router.post(
         }
     }
 );
-// TODO: have to check this route
+
 router.post(
     '/api/skills/update',
     async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {
@@ -174,9 +177,29 @@ router.post(
                 );
             }
             const _id = new ObjectId(id);
-            const updateSkill = await Skills.updateSkillName({ _id, name });
+            const version = await Skills.getMaxVersionToInsert();
+            const updateSkill = await Skills.updateSkillName({
+                _id,
+                name,
+                version
+            });
             if (!updateSkill) throw new Error('unable to update skill by name');
             const skill = await Skills.getSkillById(_id);
+
+            if (skill) {
+                const skillDoc = skill[0];
+                if (!skillDoc.version || !skillDoc.dbStatus || !skillDoc.name)
+                    throw new Error(
+                        'we need skill database doc details to publish this event'
+                    );
+                await new skillUpdatedPublisher(natsWrapper.client).publish({
+                    _id: skillDoc._id.toString(),
+                    name: skillDoc.name,
+                    version: skillDoc.version,
+                    dbStatus: skillDoc.dbStatus
+                });
+            }
+
             res.status(201).send({ data: skill });
         } catch (err) {
             logErrorMessage(err);

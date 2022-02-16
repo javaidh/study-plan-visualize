@@ -50,7 +50,7 @@ export class Skills {
             );
         }
     }
-
+    // TODO: This method will throw error if no collection exists
     static async maxVersionInDb(): Promise<WithId<returnSkillDocument>[]> {
         try {
             const db = await connectDb();
@@ -214,14 +214,18 @@ export class Skills {
         }
     }
     // we dont need to increment version in database
-    static async updateSkillName(updateProps: { _id: ObjectId; name: string }) {
+    static async updateSkillName(updateProps: {
+        _id: ObjectId;
+        name: string;
+        version: number;
+    }) {
         try {
-            const { _id, name } = updateProps;
+            const { _id, name, version } = updateProps;
             const db = await connectDb();
 
             const result: UpdateResult = await db
                 .collection('skills')
-                .updateOne({ _id }, { $set: { name: name } });
+                .updateOne({ _id }, { $set: { name: name, version: version } });
             return result.acknowledged;
         } catch (err) {
             logErrorMessage(err);

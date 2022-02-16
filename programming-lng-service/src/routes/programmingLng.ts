@@ -4,7 +4,8 @@ import { ObjectId } from 'mongodb';
 import { natsWrapper } from '../nats-wrapper';
 import {
     programmingLngCreatedPublisher,
-    programmingLngDeletedPublisher
+    programmingLngDeletedPublisher,
+    programmingLngUpdatedPublisher
 } from '../events/publishers';
 import { ReqAnnotateBodyString } from '../types/interfaceRequest';
 import { ProgrammingLng, databaseStatus } from '../models/programmingLng';
@@ -45,9 +46,13 @@ router.post(
             if (!programmingLngCreated)
                 throw new Error('unable to create programming language');
             const programmingLngDoc = programmingLngCreated[0];
-            if (!programmingLngDoc.name || !programmingLngDoc.version)
+            if (
+                !programmingLngDoc.name ||
+                !programmingLngDoc.version ||
+                !programmingLngDoc.dbStatus
+            )
                 throw new Error(
-                    'we need programming language name to publish programming language:created event'
+                    'we need programming language name, version, database status to publish programming language:created event'
                 );
 
             // publish skillCreatedEvent
@@ -56,7 +61,8 @@ router.post(
             ).publish({
                 _id: programmingLngDoc._id.toString(),
                 name: programmingLngDoc.name,
-                version: programmingLngDoc.version
+                version: programmingLngDoc.version,
+                dbStatus: programmingLngDoc.dbStatus
             });
             res.status(201).send({ data: programmingLngCreated });
         } catch (err) {
@@ -120,7 +126,7 @@ router.post(
             );
             if (programmingLngDeleted && inactiveSkill) {
                 const programmingLngDoc = inactiveSkill[0];
-                if (!programmingLngDoc.version)
+                if (!programmingLngDoc.version || !programmingLngDoc.dbStatus)
                     throw new Error(
                         'we need programming language version to publish this event'
                     );
@@ -128,7 +134,8 @@ router.post(
                     natsWrapper.client
                 ).publish({
                     _id: programmingLngDoc._id.toString(),
-                    version: programmingLngDoc.version
+                    version: programmingLngDoc.version,
+                    dbStatus: programmingLngDoc.dbStatus
                 });
             }
             res.status(201).send({ data: programmingLngDeleted });
@@ -197,10 +204,12 @@ router.post(
                 );
             }
             const _id = new ObjectId(id);
+            const version = await ProgrammingLng.getMaxVersionToInsert();
             const updateProgrammingLng =
                 await ProgrammingLng.updateProgrammingLngName({
                     _id,
-                    name
+                    name,
+                    version
                 });
             if (!updateProgrammingLng)
                 throw new Error(
@@ -209,6 +218,28 @@ router.post(
             const programmingLng = await ProgrammingLng.getProgrammingLngById(
                 _id
             );
+
+            // publish event
+            if (programmingLng) {
+                const programmingDoc = programmingLng[0];
+                if (
+                    !programmingDoc.version ||
+                    !programmingDoc.dbStatus ||
+                    !programmingDoc.name
+                )
+                    throw new Error(
+                        'we need programming database doc details to publish this event'
+                    );
+                await new programmingLngUpdatedPublisher(
+                    natsWrapper.client
+                ).publish({
+                    _id: programmingDoc._id.toString(),
+                    name: programmingDoc.name,
+                    version: programmingDoc.version,
+                    dbStatus: programmingDoc.dbStatus
+                });
+            }
+
             res.status(201).send({ data: programmingLng });
         } catch (err) {
             logErrorMessage(err);
