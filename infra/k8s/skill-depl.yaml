@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skill-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: skill
+  template:
+    metadata:
+      labels:
+        app: skill
+    spec:
+      containers:
+        - name: skill
+          image: areebaiftikhar/skill:v1
+          env:
+            - name: PORT
+              value: "3000"
+            - name: MONGO_DB_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: skill-mongodb-uri
+                  key: URI
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: skill-srv
+spec:
+  selector:
+    app: skill
+  ports:
+    - name: skill
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
