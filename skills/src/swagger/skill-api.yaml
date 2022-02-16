@@ -152,10 +152,8 @@ paths:
                             properties:
                                 id:
                                     type: string
-                                course:
-                                    $ref: '#/components/schemas/Course'
-                                book:
-                                    $ref: '#/components/schemas/Book'
+                                name:
+                                    type: string
             responses:
                 201:
                     description: successful operation

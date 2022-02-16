@@ -160,23 +160,28 @@ router.post(
 router.post(
     '/api/skills/update',
     async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {
-        const { id, name } = req.body;
-        if (!id || !name)
-            throw new BadRequestError(
-                'please provide id and name to update skill'
-            );
-        // check if a skill already exists with that name
-        const existingSkill = await Skills.getSkillByName(name);
-        if (existingSkill?.length) {
-            throw new BadRequestError(
-                'The skill name you are trying to update is already in use please provide new name'
-            );
+        try {
+            const { id, name } = req.body;
+            if (!id || !name)
+                throw new BadRequestError(
+                    'please provide id and name to update skill'
+                );
+            // check if a skill already exists with that name
+            const existingSkill = await Skills.getSkillByName(name);
+            if (existingSkill?.length) {
+                throw new BadRequestError(
+                    'The skill name you are trying to update is already in use please provide new name'
+                );
+            }
+            const _id = new ObjectId(id);
+            const updateSkill = await Skills.updateSkillName({ _id, name });
+            if (!updateSkill) throw new Error('unable to update skill by name');
+            const skill = await Skills.getSkillById(_id);
+            res.status(201).send({ data: skill });
+        } catch (err) {
+            logErrorMessage(err);
+            next(err);
         }
-        const _id = new ObjectId(id);
-        const updateSkill = await Skills.updateSkillName({ _id, name });
-        if (!updateSkill) throw new Error('unable to update skill by name');
-        const skill = await Skills.getSkillById(_id);
-        res.status(201).send({ data: skill });
     }
 );
 
