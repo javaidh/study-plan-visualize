@@ -21,7 +21,6 @@ const startServer = async () => {
         app.set('trust proxy', true);
 
         // check if environment variable exists
-        // check if environment variable exists
         if (
             !process.env.MONGO_DB_CONNECTION_STRING ||
             !process.env.NATS_URL ||

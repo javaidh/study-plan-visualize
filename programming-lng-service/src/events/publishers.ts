@@ -1,15 +1,19 @@
-//TODO: add these events to event module
 import {
     Publisher,
     Subjects,
-    programmingLngCreatedCreatedEvent,
-    programmingLngCreatedDeletedEvent
+    programmingLngCreatedEvent,
+    programmingLngDeletedEvent,
+    programmingLngUpdatedEvent
 } from '@ai-common-modules/events';
 
-export class programmingLngCreatedPublisher extends Publisher<programmingLngCreatedCreatedEvent> {
+export class programmingLngCreatedPublisher extends Publisher<programmingLngCreatedEvent> {
     readonly subject = Subjects.ProgrammingLanguageCreated;
 }
 
-export class programmingLngDeletedPublisher extends Publisher<programmingLngCreatedDeletedEvent> {
+export class programmingLngDeletedPublisher extends Publisher<programmingLngDeletedEvent> {
     readonly subject = Subjects.ProgrammingLanguageDeleted;
+}
+
+export class programmingLngUpdatedPublisher extends Publisher<programmingLngUpdatedEvent> {
+    readonly subject = Subjects.ProgrammingLanguageUpdated;
 }

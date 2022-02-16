@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: programming-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: programming
+  template:
+    metadata:
+      labels:
+        app: programming
+    spec:
+      containers:
+        - name: programming
+          image: areebaiftikhar/programming:v1
+          env:
+            - name: NATS_URL
+              value: "http://nats-srv:4222"
+            - name: NATS_CLUSTER_ID
+              value: studyplan
+            - name: NATS_CLIENT_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: PORT
+              value: "3000"
+            - name: MONGO_DB_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: skill-mongodb-uri
+                  key: URI
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: programming-srv
+spec:
+  selector:
+    app: programming
+  ports:
+    - name: programming
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
