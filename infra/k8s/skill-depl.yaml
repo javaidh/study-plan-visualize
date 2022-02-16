@@ -16,6 +16,14 @@ spec:
         - name: skill
           image: areebaiftikhar/skill:v1
           env:
+            - name: NATS_URL
+              value: "http://nats-srv:4222"
+            - name: NATS_CLUSTER_ID
+              value: studyplan
+            - name: NATS_CLIENT_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: PORT
               value: "3000"
             - name: MONGO_DB_CONNECTION_STRING
