@@ -1,17 +1,17 @@
 openapi: 3.0.1
 info:
-    title: skills-service
-    description: This is a sample skills microservice
+    title: programming-language-service
+    description: This is a sample programming language microservice
     version: 1.0.0
 servers:
     - url: localhost
 paths:
-    /api/skills/{id}:
+    /api/programming/{id}:
         get:
             tags:
-                - skills
-            summary: get a single skill by id
-            operationId: getSkill
+                - programming
+            summary: get a programming language by id
+            operationId: getProgrammingLanguage
             parameters:
                 - $ref: '#/components/parameters/id'
             responses:
@@ -24,7 +24,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/SkillData'
+                                            $ref: '#/components/schemas/ProgrammingLanguageData'
                 400:
                     description: unsuccesful operation
                     content:
@@ -36,12 +36,12 @@ paths:
                                         items:
                                             $ref: '#/components/schemas/Errors'
 
-    /api/skills/all:
+    /api/programming/all:
         get:
             tags:
-                - skills
-            summary: retrieve all skills from database
-            operationId: getAllSkills
+                - programming
+            summary: retrieve all programming language from database
+            operationId: getAllProgrammingLanguage
             responses:
                 200:
                     description: successful operation
@@ -52,7 +52,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/SkillData'
+                                            $ref: '#/components/schemas/ProgrammingLanguageData'
 
                 400:
                     description: unsuccesful operation
@@ -64,14 +64,14 @@ paths:
                                         type: array
                                         items:
                                             $ref: '#/components/schemas/Errors'
-    /api/skills/destroy:
+    /api/programming/destroy:
         post:
             tags:
-                - skills
-            summary: delete a skill by id
+                - programming
+            summary: delete a programming language by id
             operationId: deleteTask
             requestBody:
-                description: delete skill from the backend
+                description: delete programming language from the backend
                 required: true
                 content:
                     application/json:
@@ -99,14 +99,14 @@ paths:
                                         type: array
                                         items:
                                             $ref: '#/components/schemas/Errors'
-    /api/skills/add:
+    /api/programming/add:
         post:
             tags:
-                - skills
-            summary: add a skill
-            operationId: addSkill
+                - programming
+            summary: add a programming language
+            operationId: addProgrammingLanguage
             requestBody:
-                description: add skill to the backend
+                description: add programming language to the backend
                 required: true
                 content:
                     application/json:
@@ -125,7 +125,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/SkillData'
+                                            $ref: '#/components/schemas/ProgrammingLanguageData'
 
                 400:
                     description: unsuccesful operation
@@ -137,14 +137,14 @@ paths:
                                         type: array
                                         items:
                                             $ref: '#/components/schemas/Errors'
-    /api/skills/update:
+    /api/programming/update:
         post:
             tags:
-                - skills
-            summary: edit a skill
-            operationId: EditSkill
+                - programming
+            summary: edit a programming language
+            operationId: EditProgrammingLanguage
             requestBody:
-                description: edit skill data in the backend
+                description: edit programming language data in the backend
                 required: true
                 content:
                     application/json:
@@ -164,7 +164,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/SkillData'
+                                            $ref: '#/components/schemas/ProgrammingLanguageData'
 
                 400:
                     description: unsuccesful operation
@@ -181,7 +181,7 @@ components:
         id:
             name: id
             in: path
-            description: Task Id values that need to be considered for filter
+            description: programming language id values that need to be considered for filter
             required: true
             schema:
                 type: string
@@ -194,7 +194,7 @@ components:
                 field:
                     nullable: true
                     type: string
-        SkillData:
+        ProgrammingLanguageData:
             type: object
             properties:
                 _id:
