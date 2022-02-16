@@ -13,8 +13,8 @@ export enum databaseStatus {
 interface returnSkillDocument {
     _id: ObjectId;
     name?: string;
-    course?: { _id: ObjectId; name: string };
-    book?: { _id: ObjectId; name: string };
+    course?: ObjectId;
+    book?: ObjectId;
     version?: number;
     dbStatus?: databaseStatus;
 }
@@ -22,8 +22,8 @@ interface returnSkillDocument {
 interface insertSkillDocument {
     _id?: ObjectId;
     name: string;
-    course?: { _id: ObjectId; name: string };
-    book?: { _id: ObjectId; name: string };
+    ccourse?: ObjectId;
+    book?: ObjectId;
     // we are using version property to keep track of events emitted by this service
     // In other services we have to process events in order to avoid data issues
     version: number;
@@ -50,32 +50,16 @@ export class Skills {
             );
         }
     }
-    // TODO: This method will throw error if no collection exists
-    static async maxVersionInDb(): Promise<WithId<returnSkillDocument>[]> {
-        try {
-            const db = await connectDb();
-            const result: Promise<WithId<returnSkillDocument>[]> = db
-                .collection('skills')
-                .find()
-                .sort({ version: -1 })
-                .limit(1)
-                .toArray(); // for MAX
-            return result;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors('Unable to retrieve skill from database');
-        }
-    }
 
     static async getSkillByName(
         name: string
     ): Promise<returnSkillDocument[] | undefined> {
         try {
             const db = await connectDb();
+            // you only want to return active names
             const dbStatus = databaseStatus.inUse;
             const result: WithId<returnSkillDocument>[] = await db
                 .collection('skills')
-                // you only want to return user password in case you are doing a password check
                 .find({ name, dbStatus })
                 .toArray();
             if (!result)
@@ -129,6 +113,24 @@ export class Skills {
             throw new DatabaseErrors('Unable to retrieve skill from database');
         }
     }
+    static async findSkillByIdAndVersion(_id: ObjectId, version: number) {
+        try {
+            const db = await connectDb();
+            const result: WithId<returnSkillDocument>[] = await db
+                .collection('skills')
+                // you only want to return user password in case you are doing a password check
+                .find({ $and: [{ _id: _id }, { version: version }] })
+                .toArray();
+            if (!result)
+                throw new DatabaseErrors(
+                    'Unable to retrieve skill from database'
+                );
+            return result;
+        } catch (err) {
+            logErrorMessage(err);
+            throw new DatabaseErrors('Unable to retrieve skill from database');
+        }
+    }
 
     static async deleteSkillById(_id: ObjectId, version: number) {
         try {
@@ -151,19 +153,19 @@ export class Skills {
             throw new DatabaseErrors('Unable to retrieve skill from database');
         }
     }
-    // this method is for when we recieve event to update course/book
-    // TODO: we dont need to increment version in database
+
     static async updateSkill(updateProps: {
         _id: ObjectId;
         version: number;
-        course?: { _id: ObjectId; name: String };
-        book?: { _id: ObjectId; name: String };
+        course?: ObjectId;
+        book?: ObjectId;
     }) {
         try {
             const db = await connectDb();
             const { _id, version, course, book } = updateProps;
 
             if (course && book) {
+                console.log('inside course & book');
                 const result: UpdateResult = await db
                     .collection('skills')
                     .updateOne(
@@ -230,19 +232,6 @@ export class Skills {
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors('Unable to retrieve skill from database');
-        }
-    }
-
-    static async getMaxVersionToInsert() {
-        try {
-            let version: number;
-            const maxVersionDocArray = await Skills.maxVersionInDb();
-            const maxVersionDoc = maxVersionDocArray[0];
-            version = maxVersionDoc.version ? maxVersionDoc.version + 1 : 1;
-            return version;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors('Unable to increment maxVersion');
         }
     }
 }

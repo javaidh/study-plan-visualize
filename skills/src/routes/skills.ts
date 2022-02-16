@@ -30,8 +30,8 @@ router.post(
             if (existingSkill?.length) {
                 throw new BadRequestError('skill name already in use');
             }
-            // determine maxVersion to insert in database
-            const version = await Skills.getMaxVersionToInsert();
+            // first time default version to 1
+            const version = 1;
             const dbStatus: databaseStatus = databaseStatus.inUse;
             const skillCreated = await Skills.insertSkill({
                 name,
@@ -99,13 +99,25 @@ router.post(
             if (!id)
                 throw new BadRequestError('please provide id to delete skill');
             const _id = new ObjectId(id);
-            // determine maxVersion to insert in database
-            const version = await Skills.getMaxVersionToInsert();
-            const skillDeleted = await Skills.deleteSkillById(_id, version);
+            // find skill with id get the version number increment version number, update the record, publish the record to nats
+            const skillArray = await Skills.getSkillById(_id);
+            if (!skillArray)
+                throw new Error('cannot find skill with the required id');
+            const skill = skillArray[0];
+            if (!skill.version || !skill.dbStatus || !skill.name)
+                throw new Error(
+                    'version dbStatus and name are needed to update record'
+                );
+            const newVersion = skill.version + 1;
+            // id is used to find the record
+            const skillDeleted = await Skills.deleteSkillById(_id, newVersion);
 
-            // publish event
-            const inactiveSkill = await Skills.getSkillById(_id);
-            if (skillDeleted && inactiveSkill) {
+            if (skillDeleted) {
+                // publish event to nats
+                const inactiveSkill = await Skills.findSkillByIdAndVersion(
+                    _id,
+                    newVersion
+                );
                 const skillDoc = inactiveSkill[0];
                 if (!skillDoc.version || !skillDoc.dbStatus)
                     throw new Error(
@@ -113,6 +125,7 @@ router.post(
                     );
                 await new skillDeletedPublisher(natsWrapper.client).publish({
                     _id: skillDoc._id.toString(),
+                    // we need name aswell
                     version: skillDoc.version,
                     dbStatus: skillDoc.dbStatus
                 });
@@ -127,32 +140,58 @@ router.post(
 
 // update skills
 // TODO: this update logic will happen when event recieved so this is not a route
-// TODO: In the database function we will not increment number of version.
-// TODO: we need to implement an update name route
 router.post(
     '/api/skills/updateEvent',
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {
         try {
-            let { id, course, book } = req.body;
+            let { id, courseId, bookId } = req.body;
             if (!id)
                 throw new BadRequestError('please provide id to update skill');
-            const _id = new ObjectId(id);
-            course ? (course._id = new ObjectId(course._id)) : undefined;
-            book ? (book._id = new ObjectId(book._id)) : undefined;
-            // determine maxVersion to insert in database
-            const version = await Skills.getMaxVersionToInsert();
 
+            //sanitize id
+            const _id = new ObjectId(id);
+            const course = courseId ? new ObjectId(courseId) : undefined;
+            const book = bookId ? new ObjectId(bookId) : undefined;
+            console.log(book, course, _id);
+            const skillArray = await Skills.getSkillById(_id);
+            if (!skillArray)
+                throw new Error('cannot find skill with the required id');
+            const skill = skillArray[0];
+            if (!skill.version || !skill.dbStatus || !skill.name)
+                throw new Error(
+                    'version dbStatus and name are needed to update record'
+                );
+            const newVersion = skill.version + 1;
             const updateSkill = await Skills.updateSkill({
                 _id,
-                version,
+                version: newVersion,
                 course,
                 book
             });
 
             if (!updateSkill)
                 throw new DatabaseErrors('unable to update fields');
-            const skill = await Skills.getSkillById(_id);
-            res.status(201).send({ data: skill });
+
+            // find updated skill to publish event and send to front -end
+            const updatedSkill = await Skills.findSkillByIdAndVersion(
+                _id,
+                newVersion
+            );
+
+            if (updatedSkill) {
+                const skillDoc = updatedSkill[0];
+                if (!skillDoc.version || !skillDoc.dbStatus || !skillDoc.name)
+                    throw new Error(
+                        'we need skill database doc details to publish this event'
+                    );
+                await new skillUpdatedPublisher(natsWrapper.client).publish({
+                    _id: skillDoc._id.toString(),
+                    name: skillDoc.name,
+                    version: skillDoc.version,
+                    dbStatus: skillDoc.dbStatus
+                });
+            }
+            res.status(201).send({ data: updatedSkill });
         } catch (err) {
             logErrorMessage(err);
             next(err);
@@ -169,7 +208,7 @@ router.post(
                 throw new BadRequestError(
                     'please provide id and name to update skill'
                 );
-            // check if a skill already exists with that name
+            // check if a skill already exists with that name thsi functions internally only checks active value
             const existingSkill = await Skills.getSkillByName(name);
             if (existingSkill?.length) {
                 throw new BadRequestError(
@@ -177,17 +216,31 @@ router.post(
                 );
             }
             const _id = new ObjectId(id);
-            const version = await Skills.getMaxVersionToInsert();
+
+            // find skill with id get the version number increment version number, update the record, publish the record to nats
+            const skillArray = await Skills.getSkillById(_id);
+            if (!skillArray)
+                throw new Error('cannot find skill with the required id');
+            const skill = skillArray[0];
+            if (!skill.version || !skill.dbStatus || !skill.name)
+                throw new Error(
+                    'version dbStatus and name are needed to update record'
+                );
+            const newVersion = skill.version + 1;
+            // id is used to find the record
             const updateSkill = await Skills.updateSkillName({
                 _id,
                 name,
-                version
+                version: newVersion
             });
             if (!updateSkill) throw new Error('unable to update skill by name');
-            const skill = await Skills.getSkillById(_id);
 
-            if (skill) {
-                const skillDoc = skill[0];
+            const updatedSkill = await Skills.findSkillByIdAndVersion(
+                _id,
+                newVersion
+            );
+            if (updatedSkill) {
+                const skillDoc = updatedSkill[0];
                 if (!skillDoc.version || !skillDoc.dbStatus || !skillDoc.name)
                     throw new Error(
                         'we need skill database doc details to publish this event'
@@ -200,7 +253,7 @@ router.post(
                 });
             }
 
-            res.status(201).send({ data: skill });
+            res.status(201).send({ data: updatedSkill });
         } catch (err) {
             logErrorMessage(err);
             next(err);
