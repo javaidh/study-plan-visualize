@@ -51,7 +51,7 @@ export class Skills {
         }
     }
 
-    static async maxVersion(): Promise<WithId<returnSkillDocument>[]> {
+    static async maxVersionInDb(): Promise<WithId<returnSkillDocument>[]> {
         try {
             const db = await connectDb();
             const result: Promise<WithId<returnSkillDocument>[]> = db
@@ -151,7 +151,8 @@ export class Skills {
             throw new DatabaseErrors('Unable to retrieve skill from database');
         }
     }
-
+    // this method is for when we recieve event to update course/book
+    // TODO: we dont need to increment version in database
     static async updateSkill(updateProps: {
         _id: ObjectId;
         version: number;
@@ -210,6 +211,34 @@ export class Skills {
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors('Unable to retrieve skill from database');
+        }
+    }
+    // we dont need to increment version in database
+    static async updateSkillName(updateProps: { _id: ObjectId; name: string }) {
+        try {
+            const { _id, name } = updateProps;
+            const db = await connectDb();
+
+            const result: UpdateResult = await db
+                .collection('skills')
+                .updateOne({ _id }, { $set: { name: name } });
+            return result.acknowledged;
+        } catch (err) {
+            logErrorMessage(err);
+            throw new DatabaseErrors('Unable to retrieve skill from database');
+        }
+    }
+
+    static async getMaxVersionToInsert() {
+        try {
+            let version: number;
+            const maxVersionDocArray = await Skills.maxVersionInDb();
+            const maxVersionDoc = maxVersionDocArray[0];
+            version = maxVersionDoc.version ? maxVersionDoc.version + 1 : 1;
+            return version;
+        } catch (err) {
+            logErrorMessage(err);
+            throw new DatabaseErrors('Unable to increment maxVersion');
         }
     }
 }

@@ -1,8 +1,14 @@
-// TODO: fix imports after shifting to node_module
-import { Publisher } from '../nats/publisher';
-import { Subjects } from '../nats/subjects';
-import { skillCreatedEvent } from '../nats/dataTypes';
+import {
+    Publisher,
+    Subjects,
+    skillCreatedEvent,
+    skillDeletedEvent
+} from '@ai-common-modules/events';
 
 export class skillCreatedPublisher extends Publisher<skillCreatedEvent> {
     readonly subject = Subjects.SkillCreated;
+}
+
+export class skillDeletedPublisher extends Publisher<skillDeletedEvent> {
+    readonly subject = Subjects.SkillDeleted;
 }

@@ -2,7 +2,10 @@ import express, { NextFunction, Response, Request } from 'express';
 import { ObjectId } from 'mongodb';
 
 import { natsWrapper } from '../nats-wrapper';
-import { skillCreatedPublisher } from '../events/publishers';
+import {
+    skillCreatedPublisher,
+    skillDeletedPublisher
+} from '../events/publishers';
 import { ReqAnnotateBodyString } from '../types/interfaceRequest';
 import { Skills, databaseStatus } from '../models/skills';
 import { BadRequestError } from '../errors/badRequestError';
@@ -23,18 +26,12 @@ router.post(
 
             // check if active entries in the db already have skill with this name
             const existingSkill = await Skills.getSkillByName(name);
-            console.log(existingSkill);
             if (existingSkill?.length) {
                 throw new BadRequestError('skill name already in use');
             }
-
-            let version: number;
+            // determine maxVersion to insert in database
+            const version = await Skills.getMaxVersionToInsert();
             const dbStatus: databaseStatus = databaseStatus.inUse;
-            // determine maxVersion inside skills collection and assign maxVersion + 1 to new variable
-            const maxVersionDocArray = await Skills.maxVersion();
-            const maxVersionDoc = maxVersionDocArray[0];
-            version = maxVersionDoc.version ? maxVersionDoc.version + 1 : 1;
-
             const skillCreated = await Skills.insertSkill({
                 name,
                 version,
@@ -42,7 +39,7 @@ router.post(
             });
             if (!skillCreated) throw new Error('unable to create skill');
             const skillDoc = skillCreated[0];
-            if (!skillDoc.name)
+            if (!skillDoc.name || !skillDoc.version)
                 throw new Error(
                     'we need skill name to publish skill:created event'
                 );
@@ -50,7 +47,8 @@ router.post(
             // publish skillCreatedEvent
             await new skillCreatedPublisher(natsWrapper.client).publish({
                 _id: skillDoc._id.toString(),
-                name: skillDoc.name
+                name: skillDoc.name,
+                version: skillDoc.version
             });
             res.status(201).send({ data: skillCreated });
         } catch (err) {
@@ -99,12 +97,23 @@ router.post(
             if (!id)
                 throw new BadRequestError('please provide id to delete skill');
             const _id = new ObjectId(id);
-            // determine maxVersion inside skills collection and assign maxVersion + 1 to new variable
-            let version: number;
-            const maxVersionDocArray = await Skills.maxVersion();
-            const maxVersionDoc = maxVersionDocArray[0];
-            version = maxVersionDoc.version ? maxVersionDoc.version + 1 : 1;
+            // determine maxVersion to insert in database
+            const version = await Skills.getMaxVersionToInsert();
             const skillDeleted = await Skills.deleteSkillById(_id, version);
+
+            // publish event
+            const inactiveSkill = await Skills.getSkillById(_id);
+            if (skillDeleted && inactiveSkill) {
+                const skillDoc = inactiveSkill[0];
+                if (!skillDoc.version)
+                    throw new Error(
+                        'we need skill version to publish this event'
+                    );
+                await new skillDeletedPublisher(natsWrapper.client).publish({
+                    _id: skillDoc._id.toString(),
+                    version: skillDoc.version
+                });
+            }
             res.status(201).send({ data: skillDeleted });
         } catch (err) {
             logErrorMessage(err);
@@ -112,15 +121,13 @@ router.post(
         }
     }
 );
-/*
-_id: ObjectId;
-        version: number;
-        course?: { _id: ObjectId; name: String };
-        book?: { _id: ObjectId; name: String };
-*/
+
 // update skills
+// TODO: this update logic will happen when event recieved so this is not a route
+// TODO: In the database function we will not increment number of version.
+// TODO: we need to implement an update name route
 router.post(
-    '/api/skills/update',
+    '/api/skills/updateEvent',
     async (req: Request, res: Response, next: NextFunction) => {
         try {
             let { id, course, book } = req.body;
@@ -129,11 +136,8 @@ router.post(
             const _id = new ObjectId(id);
             course ? (course._id = new ObjectId(course._id)) : undefined;
             book ? (book._id = new ObjectId(book._id)) : undefined;
-            // determine maxVersion inside skills collection and assign maxVersion + 1 to new variable
-            let version: number;
-            const maxVersionDocArray = await Skills.maxVersion();
-            const maxVersionDoc = maxVersionDocArray[0];
-            version = maxVersionDoc.version ? maxVersionDoc.version + 1 : 1;
+            // determine maxVersion to insert in database
+            const version = await Skills.getMaxVersionToInsert();
 
             const updateSkill = await Skills.updateSkill({
                 _id,
@@ -150,6 +154,29 @@ router.post(
             logErrorMessage(err);
             next(err);
         }
+    }
+);
+// TODO: have to check this route
+router.post(
+    '/api/skills/update',
+    async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {
+        const { id, name } = req.body;
+        if (!id || !name)
+            throw new BadRequestError(
+                'please provide id and name to update skill'
+            );
+        // check if a skill already exists with that name
+        const existingSkill = await Skills.getSkillByName(name);
+        if (existingSkill?.length) {
+            throw new BadRequestError(
+                'The skill name you are trying to update is already in use please provide new name'
+            );
+        }
+        const _id = new ObjectId(id);
+        const updateSkill = await Skills.updateSkillName({ _id, name });
+        if (!updateSkill) throw new Error('unable to update skill by name');
+        const skill = await Skills.getSkillById(_id);
+        res.status(201).send({ data: skill });
     }
 );
 
