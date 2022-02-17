@@ -8,9 +8,7 @@ export const URI = process.env.MONGO_DB_CONNECTION_STRING!;
 
 export const mongoDBClient = async (URIString: string) => {
     try {
-        const client = await MongoClient.connect(URIString, {
-            useUnifiedTopology: true
-        });
+        const client = await MongoClient.connect(URIString);
         console.log('connected to MongoClient');
         return client;
     } catch (err) {

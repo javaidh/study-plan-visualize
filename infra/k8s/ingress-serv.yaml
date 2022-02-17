@@ -23,3 +23,10 @@ spec:
                 name: programming-srv
                 port:
                   number: 3000
+          - path: /api/course/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: course-srv
+                port:
+                  number: 3000
