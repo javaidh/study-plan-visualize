@@ -69,28 +69,28 @@ export class ProgrammingLng {
         }
     }
 
-    static async getAllProgrammingLng(): Promise<
-        returnProgrammingLngDocument[] | undefined
-    > {
-        try {
-            const db = await connectDb();
-            const result: WithId<returnProgrammingLngDocument>[] = await db
-                .collection('programming')
-                // you only want to return documents that are active in database
-                .find({})
-                .toArray();
-            if (!result)
-                throw new DatabaseErrors(
-                    'Unable to retrieve programming language from database'
-                );
-            return result;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'Unable to retrieve programming language from database'
-            );
-        }
-    }
+    // static async getAllProgrammingLng(): Promise<
+    //     returnProgrammingLngDocument[] | undefined
+    // > {
+    //     try {
+    //         const db = await connectDb();
+    //         const result: WithId<returnProgrammingLngDocument>[] = await db
+    //             .collection('programming')
+    //             // you only want to return documents that are active in database
+    //             .find({})
+    //             .toArray();
+    //         if (!result)
+    //             throw new DatabaseErrors(
+    //                 'Unable to retrieve programming language from database'
+    //             );
+    //         return result;
+    //     } catch (err) {
+    //         logErrorMessage(err);
+    //         throw new DatabaseErrors(
+    //             'Unable to retrieve programming language from database'
+    //         );
+    //     }
+    // }
 
     static async getProgrammingLngById(
         _id: ObjectId
@@ -153,68 +153,68 @@ export class ProgrammingLng {
         }
     }
 
-    static async updateProgrammingLng(updateProps: {
-        _id: ObjectId;
-        version: number;
-        course?: ObjectId;
-        book?: ObjectId;
-    }) {
-        try {
-            const db = await connectDb();
-            const { _id, version, course, book } = updateProps;
+    // static async updateProgrammingLng(updateProps: {
+    //     _id: ObjectId;
+    //     version: number;
+    //     course?: ObjectId;
+    //     book?: ObjectId;
+    // }) {
+    //     try {
+    //         const db = await connectDb();
+    //         const { _id, version, course, book } = updateProps;
 
-            if (course && book) {
-                const result: UpdateResult = await db
-                    .collection('programming')
-                    .updateOne(
-                        { _id },
-                        {
-                            $set: {
-                                version: version,
-                                course: course,
-                                book: book
-                            }
-                        }
-                    );
-                return result.acknowledged;
-            }
+    //         if (course && book) {
+    //             const result: UpdateResult = await db
+    //                 .collection('programming')
+    //                 .updateOne(
+    //                     { _id },
+    //                     {
+    //                         $set: {
+    //                             version: version,
+    //                             course: course,
+    //                             book: book
+    //                         }
+    //                     }
+    //                 );
+    //             return result.acknowledged;
+    //         }
 
-            if (course && !book) {
-                const result: UpdateResult = await db
-                    .collection('programming')
-                    .updateOne(
-                        { _id },
-                        {
-                            $set: {
-                                version: version,
-                                course: course
-                            }
-                        }
-                    );
-                return result.acknowledged;
-            }
+    //         if (course && !book) {
+    //             const result: UpdateResult = await db
+    //                 .collection('programming')
+    //                 .updateOne(
+    //                     { _id },
+    //                     {
+    //                         $set: {
+    //                             version: version,
+    //                             course: course
+    //                         }
+    //                     }
+    //                 );
+    //             return result.acknowledged;
+    //         }
 
-            if (!course && book) {
-                const result: UpdateResult = await db
-                    .collection('programming')
-                    .updateOne(
-                        { _id },
-                        {
-                            $set: {
-                                version: version,
-                                book: book
-                            }
-                        }
-                    );
-                return result.acknowledged;
-            }
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'Unable to retrieve programming language from database'
-            );
-        }
-    }
+    //         if (!course && book) {
+    //             const result: UpdateResult = await db
+    //                 .collection('programming')
+    //                 .updateOne(
+    //                     { _id },
+    //                     {
+    //                         $set: {
+    //                             version: version,
+    //                             book: book
+    //                         }
+    //                     }
+    //                 );
+    //             return result.acknowledged;
+    //         }
+    //     } catch (err) {
+    //         logErrorMessage(err);
+    //         throw new DatabaseErrors(
+    //             'Unable to retrieve programming language from database'
+    //         );
+    //     }
+    // }
     static async updateProgrammingLngName(updateProps: {
         _id: ObjectId;
         name: string;
