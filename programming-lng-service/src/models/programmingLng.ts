@@ -13,8 +13,8 @@ export enum databaseStatus {
 interface returnProgrammingLngDocument {
     _id: ObjectId;
     name?: string;
-    course?: { _id: ObjectId; name: string };
-    book?: { _id: ObjectId; name: string };
+    course?: ObjectId;
+    book?: ObjectId;
     version?: number;
     dbStatus?: databaseStatus;
 }
@@ -22,8 +22,8 @@ interface returnProgrammingLngDocument {
 interface insertProgrammingLngDocument {
     _id?: ObjectId;
     name: string;
-    course?: { _id: ObjectId; name: string };
-    book?: { _id: ObjectId; name: string };
+    course?: ObjectId;
+    book?: ObjectId;
     // we are using version property to keep track of events emitted by this service
     // In other services we have to process events in order to avoid data issues
     version: number;
@@ -53,28 +53,6 @@ export class ProgrammingLng {
             );
         }
     }
-    // TODO: This method will throw error if no collection exists
-    static async maxVersionInDb(): Promise<
-        WithId<returnProgrammingLngDocument>[]
-    > {
-        try {
-            // this method assumes you have collection already created
-            const db = await connectDb();
-            const result: Promise<WithId<returnProgrammingLngDocument>[]> = db
-                .collection('programming')
-                .find()
-                .sort({ version: -1 })
-                .limit(1)
-                .toArray(); // for MAX
-            return result;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'Unable to retrieve programming language from database'
-            );
-        }
-    }
-
     static async getProgrammingLngByName(
         name: string
     ): Promise<returnProgrammingLngDocument[] | undefined> {
@@ -146,6 +124,28 @@ export class ProgrammingLng {
         }
     }
 
+    static async findProgrammingLngByIdAndVersion(
+        _id: ObjectId,
+        version: number
+    ) {
+        try {
+            const db = await connectDb();
+            const result: WithId<returnProgrammingLngDocument>[] = await db
+                .collection('programming')
+                // you only want to return user password in case you are doing a password check
+                .find({ $and: [{ _id: _id }, { version: version }] })
+                .toArray();
+            if (!result)
+                throw new DatabaseErrors(
+                    'Unable to retrieve skill from database'
+                );
+            return result;
+        } catch (err) {
+            logErrorMessage(err);
+            throw new DatabaseErrors('Unable to retrieve skill from database');
+        }
+    }
+
     static async deleteProgrammingLngById(_id: ObjectId, version: number) {
         try {
             const db = await connectDb();
@@ -174,8 +174,8 @@ export class ProgrammingLng {
     static async updateProgrammingLng(updateProps: {
         _id: ObjectId;
         version: number;
-        course?: { _id: ObjectId; name: String };
-        book?: { _id: ObjectId; name: String };
+        course?: ObjectId;
+        book?: ObjectId;
     }) {
         try {
             const db = await connectDb();
@@ -251,20 +251,6 @@ export class ProgrammingLng {
             throw new DatabaseErrors(
                 'Unable to retrieve programming language from database'
             );
-        }
-    }
-
-    static async getMaxVersionToInsert() {
-        try {
-            let version: number;
-            const maxVersionDocArray = await ProgrammingLng.maxVersionInDb();
-            if (!maxVersionDocArray.length) version = 1;
-            const maxVersionDoc = maxVersionDocArray[0];
-            version = maxVersionDoc.version ? maxVersionDoc.version + 1 : 1;
-            return version;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors('Unable to increment maxVersion');
         }
     }
 }

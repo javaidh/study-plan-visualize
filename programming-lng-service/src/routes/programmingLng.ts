@@ -35,7 +35,7 @@ router.post(
                 );
             }
             // determine maxVersion to insert in database
-            const version = await ProgrammingLng.getMaxVersionToInsert();
+            const version = 1;
             const dbStatus: databaseStatus = databaseStatus.inUse;
             const programmingLngCreated =
                 await ProgrammingLng.insertProgrammingLng({
@@ -115,17 +115,30 @@ router.post(
                     'please provide id to delete programming language'
                 );
             const _id = new ObjectId(id);
-            // determine maxVersion to insert in database
-            const version = await ProgrammingLng.getMaxVersionToInsert();
-            const programmingLngDeleted =
-                await ProgrammingLng.deleteProgrammingLngById(_id, version);
-
-            // publish event
-            const inactiveSkill = await ProgrammingLng.getProgrammingLngById(
+            // find skill with id get the version number increment version number, update the record, publish the record to nats
+            const programmingArray = await ProgrammingLng.getProgrammingLngById(
                 _id
             );
-            if (programmingLngDeleted && inactiveSkill) {
-                const programmingLngDoc = inactiveSkill[0];
+            if (!programmingArray)
+                throw new Error('cannot find programming with the required id');
+            const language = programmingArray[0];
+            if (!language.version || !language.dbStatus || !language.name)
+                throw new Error(
+                    'version dbStatus and name are needed to update record'
+                );
+            const newVersion = language.version + 1;
+            const programmingLngDeleted =
+                await ProgrammingLng.deleteProgrammingLngById(_id, newVersion);
+
+            if (programmingLngDeleted) {
+                // publish event
+                const inactiveLanguage =
+                    await ProgrammingLng.findProgrammingLngByIdAndVersion(
+                        _id,
+                        newVersion
+                    );
+
+                const programmingLngDoc = inactiveLanguage[0];
                 if (!programmingLngDoc.version || !programmingLngDoc.dbStatus)
                     throw new Error(
                         'we need programming language version to publish this event'
@@ -148,37 +161,69 @@ router.post(
 
 // update skills
 // TODO: this update logic will happen when event recieved so this is not a route
-// TODO: In the database function we will not increment number of version.
-// TODO: we need to implement an update name route
 router.post(
     '/api/programming/updateEvent',
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {
         try {
-            let { id, course, book } = req.body;
+            let { id, courseId, bookId } = req.body;
             if (!id)
                 throw new BadRequestError(
                     'please provide id to update programming language'
                 );
+            //sanitize id
             const _id = new ObjectId(id);
-            course ? (course._id = new ObjectId(course._id)) : undefined;
-            book ? (book._id = new ObjectId(book._id)) : undefined;
-            // determine maxVersion to insert in database
-            const version = await ProgrammingLng.getMaxVersionToInsert();
+            const course = courseId ? new ObjectId(courseId) : undefined;
+            const book = bookId ? new ObjectId(bookId) : undefined;
+
+            const programmingArray = await ProgrammingLng.getProgrammingLngById(
+                _id
+            );
+            if (!programmingArray?.length)
+                throw new Error('cannot find programming with the required id');
+            const language = programmingArray[0];
+            if (!language.version || !language.dbStatus || !language.name)
+                throw new Error(
+                    'version dbStatus and name are needed to update record'
+                );
+            const newVersion = language.version + 1;
 
             const updateProgrammingLng =
                 await ProgrammingLng.updateProgrammingLng({
                     _id,
-                    version,
+                    version: newVersion,
                     course,
                     book
                 });
 
             if (!updateProgrammingLng)
                 throw new DatabaseErrors('unable to update fields');
-            const programmingLng = await ProgrammingLng.getProgrammingLngById(
-                _id
-            );
-            res.status(201).send({ data: programmingLng });
+            // find updated skill to publish event and send to front -end
+            const updatedLanguage =
+                await ProgrammingLng.findProgrammingLngByIdAndVersion(
+                    _id,
+                    newVersion
+                );
+
+            if (updatedLanguage) {
+                const LanguageDoc = updatedLanguage[0];
+                if (
+                    !LanguageDoc.version ||
+                    !LanguageDoc.dbStatus ||
+                    !LanguageDoc.name
+                )
+                    throw new Error(
+                        'we need skill database doc details to publish this event'
+                    );
+                await new programmingLngUpdatedPublisher(
+                    natsWrapper.client
+                ).publish({
+                    _id: LanguageDoc._id.toString(),
+                    name: LanguageDoc.name,
+                    version: LanguageDoc.version,
+                    dbStatus: LanguageDoc.dbStatus
+                });
+            }
+            res.status(201).send({ data: updatedLanguage });
         } catch (err) {
             logErrorMessage(err);
             next(err);
@@ -204,24 +249,37 @@ router.post(
                 );
             }
             const _id = new ObjectId(id);
-            const version = await ProgrammingLng.getMaxVersionToInsert();
+            const programmingArray = await ProgrammingLng.getProgrammingLngById(
+                _id
+            );
+            if (!programmingArray?.length)
+                throw new Error('cannot find programming with the required id');
+            const language = programmingArray[0];
+            if (!language.version || !language.dbStatus || !language.name)
+                throw new Error(
+                    'version dbStatus and name are needed to update record'
+                );
+            const newVersion = language.version + 1;
+
             const updateProgrammingLng =
                 await ProgrammingLng.updateProgrammingLngName({
                     _id,
                     name,
-                    version
+                    version: newVersion
                 });
             if (!updateProgrammingLng)
                 throw new Error(
                     'unable to update programming language by name'
                 );
-            const programmingLng = await ProgrammingLng.getProgrammingLngById(
-                _id
-            );
-
+            const updatedProgrammingLng =
+                await ProgrammingLng.findProgrammingLngByIdAndVersion(
+                    _id,
+                    newVersion
+                );
+            console.log(updatedProgrammingLng);
             // publish event
-            if (programmingLng) {
-                const programmingDoc = programmingLng[0];
+            if (updatedProgrammingLng.length) {
+                const programmingDoc = updatedProgrammingLng[0];
                 if (
                     !programmingDoc.version ||
                     !programmingDoc.dbStatus ||
@@ -240,7 +298,7 @@ router.post(
                 });
             }
 
-            res.status(201).send({ data: programmingLng });
+            res.status(201).send({ data: updatedProgrammingLng });
         } catch (err) {
             logErrorMessage(err);
             next(err);
