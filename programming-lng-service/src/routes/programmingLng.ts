@@ -97,7 +97,7 @@ router.get(
     }
 );
 
-// delete skills
+// delete
 router.post(
     '/api/programming/destroy',
     async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {

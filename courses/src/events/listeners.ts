@@ -52,7 +52,7 @@ export class SkillUpdatedListner extends Listener<skillUpdatedEvent> {
             convertedId,
             existingVersion
         );
-        if (existingSkill.length) {
+        if (existingSkill) {
             // that means you are processing right event
             const skillUpdated = await Skills.updateSkillName({
                 _id: convertedId,
@@ -106,7 +106,7 @@ export class ProgrammingLngUpdatedListner extends Listener<programmingLngUpdated
                 convertedId,
                 existingVersion
             );
-        if (existingProgramming.length) {
+        if (existingProgramming) {
             // that means you are processing right event
             const programmingUpdated =
                 await ProgrammingLng.updateProgrammingLngName({
