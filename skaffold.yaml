@@ -24,3 +24,11 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: .
+    - image: areebaiftikhar/course
+      context: courses
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: .

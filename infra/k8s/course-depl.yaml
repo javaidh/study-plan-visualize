@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: programming-depl
+  name: course-depl
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: programming
+      app: course
   template:
     metadata:
       labels:
-        app: programming
+        app: course
     spec:
       containers:
-        - name: programming
-          image: areebaiftikhar/programming:v1
+        - name: course
+          image: areebaiftikhar/course:v1
           env:
             - name: NATS_URL
               value: "http://nats-srv:4222"
@@ -29,18 +29,18 @@ spec:
             - name: MONGO_DB_CONNECTION_STRING
               valueFrom:
                 secretKeyRef:
-                  name: programming-mongodb-uri
+                  name: course-mongodb-uri
                   key: URI
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: programming-srv
+  name: course-srv
 spec:
   selector:
-    app: programming
+    app: course
   ports:
-    - name: programming
+    - name: course
       protocol: TCP
       port: 3000
       targetPort: 3000
