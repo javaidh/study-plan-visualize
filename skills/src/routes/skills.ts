@@ -125,6 +125,7 @@ router.post(
                     );
                 await new skillDeletedPublisher(natsWrapper.client).publish({
                     _id: skillDoc._id.toString(),
+                    //TODO: we need name aswell
                     // we need name aswell
                     version: skillDoc.version,
                     dbStatus: skillDoc.dbStatus
@@ -152,7 +153,7 @@ router.post(
             const _id = new ObjectId(id);
             const course = courseId ? new ObjectId(courseId) : undefined;
             const book = bookId ? new ObjectId(bookId) : undefined;
-            console.log(book, course, _id);
+
             const skillArray = await Skills.getSkillById(_id);
             if (!skillArray)
                 throw new Error('cannot find skill with the required id');
