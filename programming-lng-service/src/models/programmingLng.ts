@@ -5,18 +5,12 @@ import { connectDb } from '../services/mongodb';
 import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
 
-export enum databaseStatus {
-    inUse = 'active',
-    delete = 'inactive'
-}
-
 interface returnProgrammingLngDocument {
     _id: ObjectId;
     name?: string;
     course?: ObjectId;
     book?: ObjectId;
     version?: number;
-    dbStatus?: databaseStatus;
 }
 
 interface insertProgrammingLngDocument {
@@ -27,7 +21,6 @@ interface insertProgrammingLngDocument {
     // we are using version property to keep track of events emitted by this service
     // In other services we have to process events in order to avoid data issues
     version: number;
-    dbStatus: databaseStatus;
 }
 
 export class ProgrammingLng {
@@ -58,11 +51,10 @@ export class ProgrammingLng {
     ): Promise<returnProgrammingLngDocument[] | undefined> {
         try {
             const db = await connectDb();
-            const dbStatus = databaseStatus.inUse;
             const result: WithId<returnProgrammingLngDocument>[] = await db
                 .collection('programming')
                 // you only want to return user password in case you are doing a password check
-                .find({ name, dbStatus })
+                .find({ name })
                 .toArray();
             if (!result)
                 throw new DatabaseErrors(
@@ -82,11 +74,10 @@ export class ProgrammingLng {
     > {
         try {
             const db = await connectDb();
-            const dbStatus = databaseStatus.inUse;
             const result: WithId<returnProgrammingLngDocument>[] = await db
                 .collection('programming')
                 // you only want to return documents that are active in database
-                .find({ dbStatus })
+                .find({})
                 .toArray();
             if (!result)
                 throw new DatabaseErrors(
@@ -146,21 +137,13 @@ export class ProgrammingLng {
         }
     }
 
-    static async deleteProgrammingLngById(_id: ObjectId, version: number) {
+    static async deleteProgrammingLngById(_id: ObjectId) {
         try {
             const db = await connectDb();
-            const result: UpdateResult = await db
+            const result = await db
                 .collection('programming')
                 /// when we delete we dont remove database entry we just change the status to inactive
-                .updateOne(
-                    { _id },
-                    {
-                        $set: {
-                            dbStatus: databaseStatus.delete,
-                            version: version
-                        }
-                    }
-                );
+                .deleteOne({ _id });
             return result.acknowledged;
         } catch (err) {
             logErrorMessage(err);
@@ -169,8 +152,7 @@ export class ProgrammingLng {
             );
         }
     }
-    // this method is for when we recieve event to update course/book
-    // TODO: we dont need to increment version in database
+
     static async updateProgrammingLng(updateProps: {
         _id: ObjectId;
         version: number;

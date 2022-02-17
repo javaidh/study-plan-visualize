@@ -8,6 +8,7 @@ import 'dotenv/config.js';
 
 // inside module imports
 import { natsWrapper } from '../nats-wrapper';
+import { SkillCreatedListner, SkillUpdatedListner } from './events/listeners';
 import { connectDb } from './services/mongodb';
 import { courseRouter } from './routes/course';
 import { errorHandler } from './middlewares/errorHandler';
@@ -45,6 +46,10 @@ const startServer = async () => {
 
         process.on('SIGINT', () => natsWrapper.client.close());
         process.on('SIGTERM', () => natsWrapper.client.close());
+
+        // listen for events from other services
+        new SkillCreatedListner(natsWrapper.client).listen();
+        new SkillUpdatedListner(natsWrapper.client).listen();
 
         // connect to db
         await connectDb();

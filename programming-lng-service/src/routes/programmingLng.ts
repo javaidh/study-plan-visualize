@@ -8,7 +8,7 @@ import {
     programmingLngUpdatedPublisher
 } from '../events/publishers';
 import { ReqAnnotateBodyString } from '../types/interfaceRequest';
-import { ProgrammingLng, databaseStatus } from '../models/programmingLng';
+import { ProgrammingLng } from '../models/programmingLng';
 import { BadRequestError } from '../errors/badRequestError';
 import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
@@ -36,21 +36,15 @@ router.post(
             }
             // determine maxVersion to insert in database
             const version = 1;
-            const dbStatus: databaseStatus = databaseStatus.inUse;
             const programmingLngCreated =
                 await ProgrammingLng.insertProgrammingLng({
                     name,
-                    version,
-                    dbStatus
+                    version
                 });
             if (!programmingLngCreated)
                 throw new Error('unable to create programming language');
             const programmingLngDoc = programmingLngCreated[0];
-            if (
-                !programmingLngDoc.name ||
-                !programmingLngDoc.version ||
-                !programmingLngDoc.dbStatus
-            )
+            if (!programmingLngDoc.name || !programmingLngDoc.version)
                 throw new Error(
                     'we need programming language name, version, database status to publish programming language:created event'
                 );
@@ -61,8 +55,7 @@ router.post(
             ).publish({
                 _id: programmingLngDoc._id.toString(),
                 name: programmingLngDoc.name,
-                version: programmingLngDoc.version,
-                dbStatus: programmingLngDoc.dbStatus
+                version: programmingLngDoc.version
             });
             res.status(201).send({ data: programmingLngCreated });
         } catch (err) {
@@ -122,33 +115,21 @@ router.post(
             if (!programmingArray)
                 throw new Error('cannot find programming with the required id');
             const language = programmingArray[0];
-            if (!language.version || !language.dbStatus || !language.name)
+            if (!language.version || !language.name)
                 throw new Error(
                     'version dbStatus and name are needed to update record'
                 );
-            const newVersion = language.version + 1;
             const programmingLngDeleted =
-                await ProgrammingLng.deleteProgrammingLngById(_id, newVersion);
+                await ProgrammingLng.deleteProgrammingLngById(_id);
 
             if (programmingLngDeleted) {
                 // publish event
-                const inactiveLanguage =
-                    await ProgrammingLng.findProgrammingLngByIdAndVersion(
-                        _id,
-                        newVersion
-                    );
-
-                const programmingLngDoc = inactiveLanguage[0];
-                if (!programmingLngDoc.version || !programmingLngDoc.dbStatus)
-                    throw new Error(
-                        'we need programming language version to publish this event'
-                    );
                 await new programmingLngDeletedPublisher(
                     natsWrapper.client
                 ).publish({
-                    _id: programmingLngDoc._id.toString(),
-                    version: programmingLngDoc.version,
-                    dbStatus: programmingLngDoc.dbStatus
+                    _id: language._id.toString(),
+                    name: language.name,
+                    version: language.version
                 });
             }
             res.status(201).send({ data: programmingLngDeleted });
@@ -181,7 +162,7 @@ router.post(
             if (!programmingArray?.length)
                 throw new Error('cannot find programming with the required id');
             const language = programmingArray[0];
-            if (!language.version || !language.dbStatus || !language.name)
+            if (!language.version || !language.name)
                 throw new Error(
                     'version dbStatus and name are needed to update record'
                 );
@@ -206,11 +187,7 @@ router.post(
 
             if (updatedLanguage) {
                 const LanguageDoc = updatedLanguage[0];
-                if (
-                    !LanguageDoc.version ||
-                    !LanguageDoc.dbStatus ||
-                    !LanguageDoc.name
-                )
+                if (!LanguageDoc.version || !LanguageDoc.name)
                     throw new Error(
                         'we need skill database doc details to publish this event'
                     );
@@ -219,8 +196,7 @@ router.post(
                 ).publish({
                     _id: LanguageDoc._id.toString(),
                     name: LanguageDoc.name,
-                    version: LanguageDoc.version,
-                    dbStatus: LanguageDoc.dbStatus
+                    version: LanguageDoc.version
                 });
             }
             res.status(201).send({ data: updatedLanguage });
@@ -255,7 +231,7 @@ router.post(
             if (!programmingArray?.length)
                 throw new Error('cannot find programming with the required id');
             const language = programmingArray[0];
-            if (!language.version || !language.dbStatus || !language.name)
+            if (!language.version || !language.name)
                 throw new Error(
                     'version dbStatus and name are needed to update record'
                 );
@@ -280,11 +256,7 @@ router.post(
             // publish event
             if (updatedProgrammingLng.length) {
                 const programmingDoc = updatedProgrammingLng[0];
-                if (
-                    !programmingDoc.version ||
-                    !programmingDoc.dbStatus ||
-                    !programmingDoc.name
-                )
+                if (!programmingDoc.version || !programmingDoc.name)
                     throw new Error(
                         'we need programming database doc details to publish this event'
                     );
@@ -293,8 +265,7 @@ router.post(
                 ).publish({
                     _id: programmingDoc._id.toString(),
                     name: programmingDoc.name,
-                    version: programmingDoc.version,
-                    dbStatus: programmingDoc.dbStatus
+                    version: programmingDoc.version
                 });
             }
 

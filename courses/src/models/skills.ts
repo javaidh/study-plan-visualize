@@ -70,23 +70,23 @@ export class Skills {
         }
     }
 
-    static async getAllSkills(): Promise<returnSkillDocument[] | undefined> {
-        try {
-            const db = await connectDb();
-            const result: WithId<returnSkillDocument>[] = await db
-                .collection('skills')
-                .find({})
-                .toArray();
-            if (!result)
-                throw new DatabaseErrors(
-                    'Unable to retrieve skill from database'
-                );
-            return result;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors('Unable to retrieve skill from database');
-        }
-    }
+    // static async getAllSkills(): Promise<returnSkillDocument[] | undefined> {
+    //     try {
+    //         const db = await connectDb();
+    //         const result: WithId<returnSkillDocument>[] = await db
+    //             .collection('skills')
+    //             .find({})
+    //             .toArray();
+    //         if (!result)
+    //             throw new DatabaseErrors(
+    //                 'Unable to retrieve skill from database'
+    //             );
+    //         return result;
+    //     } catch (err) {
+    //         logErrorMessage(err);
+    //         throw new DatabaseErrors('Unable to retrieve skill from database');
+    //     }
+    // }
 
     static async getSkillById(
         _id: ObjectId
@@ -134,7 +134,6 @@ export class Skills {
                 .collection('skills')
                 /// when we delete we dont remove database entry we just change the status to inactive
                 .deleteOne({ _id });
-            console.log(result);
             return result.acknowledged;
         } catch (err) {
             logErrorMessage(err);
@@ -142,68 +141,67 @@ export class Skills {
         }
     }
 
-    static async updateSkill(updateProps: {
-        _id: ObjectId;
-        version: number;
-        course?: ObjectId;
-        book?: ObjectId;
-    }) {
-        try {
-            const db = await connectDb();
-            const { _id, version, course, book } = updateProps;
+    // static async updateSkill(updateProps: {
+    //     _id: ObjectId;
+    //     version: number;
+    //     course?: ObjectId;
+    //     book?: ObjectId;
+    // }) {
+    //     try {
+    //         const db = await connectDb();
+    //         const { _id, version, course, book } = updateProps;
 
-            if (course && book) {
-                console.log('inside course & book');
-                const result: UpdateResult = await db
-                    .collection('skills')
-                    .updateOne(
-                        { _id },
-                        {
-                            $set: {
-                                version: version,
-                                course: course,
-                                book: book
-                            }
-                        }
-                    );
-                return result.acknowledged;
-            }
+    //         if (course && book) {
+    //             console.log('inside course & book');
+    //             const result: UpdateResult = await db
+    //                 .collection('skills')
+    //                 .updateOne(
+    //                     { _id },
+    //                     {
+    //                         $set: {
+    //                             version: version,
+    //                             course: course,
+    //                             book: book
+    //                         }
+    //                     }
+    //                 );
+    //             return result.acknowledged;
+    //         }
 
-            if (course && !book) {
-                const result: UpdateResult = await db
-                    .collection('skills')
-                    .updateOne(
-                        { _id },
-                        {
-                            $set: {
-                                version: version,
-                                course: course
-                            }
-                        }
-                    );
-                return result.acknowledged;
-            }
+    //         if (course && !book) {
+    //             const result: UpdateResult = await db
+    //                 .collection('skills')
+    //                 .updateOne(
+    //                     { _id },
+    //                     {
+    //                         $set: {
+    //                             version: version,
+    //                             course: course
+    //                         }
+    //                     }
+    //                 );
+    //             return result.acknowledged;
+    //         }
 
-            if (!course && book) {
-                const result: UpdateResult = await db
-                    .collection('skills')
-                    .updateOne(
-                        { _id },
-                        {
-                            $set: {
-                                version: version,
-                                book: book
-                            }
-                        }
-                    );
-                return result.acknowledged;
-            }
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors('Unable to retrieve skill from database');
-        }
-    }
-    // we dont need to increment version in database
+    //         if (!course && book) {
+    //             const result: UpdateResult = await db
+    //                 .collection('skills')
+    //                 .updateOne(
+    //                     { _id },
+    //                     {
+    //                         $set: {
+    //                             version: version,
+    //                             book: book
+    //                         }
+    //                     }
+    //                 );
+    //             return result.acknowledged;
+    //         }
+    //     } catch (err) {
+    //         logErrorMessage(err);
+    //         throw new DatabaseErrors('Unable to retrieve skill from database');
+    //     }
+    // }
     static async updateSkillName(updateProps: {
         _id: ObjectId;
         name: string;
