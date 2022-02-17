@@ -6,7 +6,7 @@ import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
 
 interface returnProgrammingLngDocument {
-    _id: ObjectId;
+    //_id: ObjectId;
     name?: string;
     course?: ObjectId;
     book?: ObjectId;
@@ -18,15 +18,13 @@ interface insertProgrammingLngDocument {
     name: string;
     course?: ObjectId;
     book?: ObjectId;
-    // we are using version property to keep track of events emitted by this service
-    // In other services we have to process events in order to avoid data issues
     version: number;
 }
 
 export class ProgrammingLng {
     static async insertProgrammingLng(
         programmingProps: insertProgrammingLngDocument
-    ): Promise<returnProgrammingLngDocument[] | undefined> {
+    ) {
         try {
             const db = await connectDb();
             const { acknowledged, insertedId }: InsertOneResult = await db
@@ -46,9 +44,7 @@ export class ProgrammingLng {
             );
         }
     }
-    static async getProgrammingLngByName(
-        name: string
-    ): Promise<returnProgrammingLngDocument[] | undefined> {
+    static async getProgrammingLngByName(name: string) {
         try {
             const db = await connectDb();
             const result: WithId<returnProgrammingLngDocument>[] = await db
@@ -92,9 +88,7 @@ export class ProgrammingLng {
     //     }
     // }
 
-    static async getProgrammingLngById(
-        _id: ObjectId
-    ): Promise<WithId<returnProgrammingLngDocument>[] | undefined> {
+    static async getProgrammingLngById(_id: ObjectId) {
         try {
             const db = await connectDb();
             const result: WithId<returnProgrammingLngDocument>[] = await db
@@ -126,14 +120,37 @@ export class ProgrammingLng {
                 // you only want to return user password in case you are doing a password check
                 .find({ $and: [{ _id: _id }, { version: version }] })
                 .toArray();
-            if (!result)
+            if (!result.length)
                 throw new DatabaseErrors(
                     'Unable to retrieve skill from database'
                 );
-            return result;
+            const document = result[0];
+            return document;
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors('Unable to retrieve skill from database');
+        }
+    }
+
+    static async findProgrammingLngByIdAndname(_id: ObjectId, name: string) {
+        try {
+            const db = await connectDb();
+            const result: WithId<returnProgrammingLngDocument>[] = await db
+                .collection('programming')
+                // you only want to return user password in case you are doing a password check
+                .find({ $and: [{ _id: _id }, { name: name }] })
+                .toArray();
+            if (!result.length)
+                throw new DatabaseErrors(
+                    'Unable to retrieve programming language from database'
+                );
+            const document = result[0];
+            return document;
+        } catch (err) {
+            logErrorMessage(err);
+            throw new DatabaseErrors(
+                'Unable to retrieve programming language from database'
+            );
         }
     }
 
