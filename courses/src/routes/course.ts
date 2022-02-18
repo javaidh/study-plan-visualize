@@ -66,7 +66,7 @@ router.post(
                 const allSkills = await Promise.all(promiseSkillArray);
                 const allLanguages = await Promise.all(promiselanguageArray);
 
-                // map and only keep ids to store in cpurse database
+                // map and only keep ids to store in course database
                 skillId = allSkills.map((skill) => {
                     return skill._id;
                 });
@@ -119,22 +119,29 @@ router.post(
                 throw new DatabaseErrors('unable to create course');
             // publish the event
             const courseDoc = courseCreated[0];
-            if (!courseDoc.name || !courseDoc.version)
+            if (
+                !courseDoc.name ||
+                !courseDoc.version ||
+                !courseDoc.courseURL ||
+                !courseDoc.learningStatus
+            )
                 throw new Error(
-                    'we need programming language name, version, database status to publish programming language:created event'
+                    'course name ,version, courseUrl, learning status required to publish event '
                 );
             const skillJSON = courseDoc.skillId?.map((id) => {
-                return JSON.stringify(id);
+                return id.toJSON();
             });
             const languageJSON = courseDoc.languageId?.map((id) => {
-                return JSON.stringify(id);
+                return id.toJSON();
             });
             await new CourseCreatedPublisher(natsWrapper.client).publish({
                 _id: courseDoc._id.toString(),
                 name: courseDoc.name,
                 version: courseDoc.version,
-                skill: skillJSON,
-                language: languageJSON
+                courseURL: courseDoc.courseURL,
+                learningStatus: courseDoc.learningStatus,
+                skillId: skillJSON,
+                languageId: languageJSON
             });
             res.status(200).send({ data: courseCreated });
         } catch (err) {
@@ -203,17 +210,33 @@ router.post(
                     'cannot find coursewith the required id'
                 );
             const course = courseArray[0];
-            if (!course.version || !course.name)
+            if (
+                !course.version ||
+                !course.name ||
+                !course.courseURL ||
+                !course.learningStatus
+            )
                 throw new Error(
                     'version dbStatus and name are needed to publish event'
                 );
             const courseDeleted = await Course.deleteCourseById(_id);
+
+            const skillJSON = course.skillId?.map((id) => {
+                return id.toJSON();
+            });
+            const languageJSON = course.languageId?.map((id) => {
+                return id.toJSON();
+            });
 
             if (courseDeleted) {
                 // publish event
                 await new CourseDeletedPublisher(natsWrapper.client).publish({
                     _id: course._id.toString(),
                     name: course.name,
+                    courseURL: course.courseURL,
+                    learningStatus: course.learningStatus,
+                    skillId: skillJSON,
+                    languageId: languageJSON,
                     version: course.version
                 });
             }
@@ -244,7 +267,7 @@ router.post(
             } = req.body;
             if (!courseName || !courseURL || !learningStatus || !courseId)
                 throw new BadRequestError(
-                    'please provide course name url, courseId and learning status'
+                    'please provide course name url, courseId and learning status and courseId'
                 );
             if (!skills && !languages)
                 throw new BadRequestError('provide either skill or language');
@@ -352,26 +375,33 @@ router.post(
                 throw new DatabaseErrors('unable to update course');
 
             // // publish the event
-            if (!updatedCourse.name || !updatedCourse.version)
+            if (
+                !updatedCourse.name ||
+                !updatedCourse.version ||
+                !updatedCourse.courseURL ||
+                !updatedCourse.learningStatus
+            )
                 throw new Error(
                     'we need course, version, database status to publish event'
                 );
 
             const skillJSON = updatedCourse.skillId?.map((id) => {
                 2;
-                return JSON.stringify(id);
+                return id.toJSON();
             });
 
             const languageJSON = updatedCourse.languageId?.map((id) => {
-                return JSON.stringify(id);
+                return id.toJSON();
             });
 
             await new CourseUpdatedPublisher(natsWrapper.client).publish({
                 _id: updatedCourse._id.toString(),
                 name: updatedCourse.name,
+                courseURL: updatedCourse.courseURL,
+                learningStatus: updatedCourse.learningStatus,
                 version: updatedCourse.version,
-                skill: skillJSON,
-                language: languageJSON
+                skillId: skillJSON,
+                languageId: languageJSON
             });
 
             res.status(201).send({ data: [updatedCourse] });
