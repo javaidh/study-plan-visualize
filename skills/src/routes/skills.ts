@@ -161,11 +161,11 @@ router.post(
                     'version dbStatus and name are needed to update record'
                 );
             const newVersion = skill.version + 1;
-            const updateSkill = await Skills.updateSkillByCourseBook({
+            // TODO: fix this later we have removed book
+            const updateSkill = await Skills.updateSkillByCourse({
                 _id,
                 version: newVersion,
-                course,
-                book
+                course
             });
 
             if (!updateSkill)
