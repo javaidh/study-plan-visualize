@@ -42,10 +42,10 @@ router.post(
                     'we need skill name to publish skill:created event'
                 );
             const courseToJSON = skillDoc.course
-                ? JSON.stringify(skillDoc.course)
+                ? skillDoc.course.toJSON()
                 : undefined;
             const bookToJSON = skillDoc.book
-                ? JSON.stringify(skillDoc.book)
+                ? skillDoc.book.toJSON()
                 : undefined;
             // publish skillCreatedEvent
             await new skillCreatedPublisher(natsWrapper.client).publish({
@@ -117,11 +117,9 @@ router.post(
                         'version dbStatus and name are needed to update record'
                     );
                 const courseToJSON = skill.course
-                    ? JSON.stringify(skill.course)
+                    ? skill.course.toJSON()
                     : undefined;
-                const bookToJSON = skill.book
-                    ? JSON.stringify(skill.book)
-                    : undefined;
+                const bookToJSON = skill.book ? skill.book.toJSON() : undefined;
 
                 await new skillDeletedPublisher(natsWrapper.client).publish({
                     _id: skill._id.toString(),
@@ -185,10 +183,10 @@ router.post(
                         'we need skill database doc details to publish this event'
                     );
                 const courseToJSON = skillDoc.course
-                    ? JSON.stringify(skillDoc.course)
+                    ? skillDoc.course.toJSON()
                     : undefined;
                 const bookToJSON = skillDoc.book
-                    ? JSON.stringify(skillDoc.book)
+                    ? skillDoc.book.toJSON()
                     : undefined;
                 await new skillUpdatedPublisher(natsWrapper.client).publish({
                     _id: skillDoc._id.toString(),
@@ -251,10 +249,10 @@ router.post(
                         'we need skill database doc details to publish this event'
                     );
                 const courseToJSON = skillDoc.course
-                    ? JSON.stringify(skillDoc.course)
+                    ? skillDoc.course.toJSON()
                     : undefined;
                 const bookToJSON = skillDoc.book
-                    ? JSON.stringify(skillDoc.book)
+                    ? skillDoc.book.toJSON()
                     : undefined;
                 await new skillUpdatedPublisher(natsWrapper.client).publish({
                     _id: skillDoc._id.toString(),

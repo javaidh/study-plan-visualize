@@ -12,7 +12,7 @@ import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
 
 interface returnCourseDocument {
-    //_id: ObjectId;
+    _id: ObjectId;
     name?: string;
     courseURL?: string;
     learningStatus?: number;

@@ -27,14 +27,16 @@ export class CourseCreatedListner extends Listener<courseCreatedEvent> {
         msg: Message
     ): Promise<void> {
         try {
-            console.log('EventData', data, msg);
             const { _id, name, courseURL, learningStatus, skillId, version } =
                 data;
             // create course in the database regardless if it is assosciated with skills or not
             const parsedCourseId = new ObjectId(_id);
             const parsedSkillIdArray = skillId
-                ? skillId.map((skill) => new ObjectId(skill))
+                ? skillId.map((skill) => {
+                      return new ObjectId(skill);
+                  })
                 : undefined;
+
             const courseCreated = await Course.insertCourse({
                 _id: parsedCourseId,
                 name: name,
@@ -43,6 +45,7 @@ export class CourseCreatedListner extends Listener<courseCreatedEvent> {
                 version: version,
                 skillId: parsedSkillIdArray
             });
+
             if (!parsedSkillIdArray) msg.ack();
 
             // if course is assosciated with skill then we need to update skill db
@@ -85,7 +88,7 @@ export class CourseCreatedListner extends Listener<courseCreatedEvent> {
                                 'we need skill database doc details to publish this event'
                             );
                         const courseToJSON = updatedSkill.course
-                            ? JSON.stringify(updatedSkill.course)
+                            ? updatedSkill.course.toJSON()
                             : undefined;
                         return new skillUpdatedPublisher(
                             natsWrapper.client
@@ -121,7 +124,6 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
         msg: Message
     ): Promise<void> {
         try {
-            console.log('EventData', data, msg);
             const { _id, name, courseURL, learningStatus, skillId, version } =
                 data;
 
@@ -196,12 +198,12 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
                                 'we need skill database doc details to publish this event'
                             );
                         const courseToJSON = updatedSkill.course
-                            ? JSON.stringify(updatedSkill.course)
+                            ? updatedSkill.course.toJSON()
                             : undefined;
                         return new skillUpdatedPublisher(
                             natsWrapper.client
                         ).publish({
-                            _id: updatedSkill._id.toString(),
+                            _id: updatedSkill._id.toJSON(),
                             name: updatedSkill.name,
                             version: updatedSkill.version,
                             course: courseToJSON
@@ -211,7 +213,9 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
                 await Promise.all(publishPromiseAll);
                 msg.ack();
             }
-
+            //TODO: There is an error we need to do double loop to check newskillId array and oldSkillId array
+            // we need to create probably an object while looping that tells us which values removed, which added.
+            // we dont do anything with the ones that are in place.
             // 3/3 this is generic case when there were skill Id in past and now but some SkillId might have been removed or added
             // also handles the case when no skillId in the past but now there is
             if (parsedSkillIdArray) {
@@ -253,12 +257,12 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
                                 'we need skill database doc details to publish this event'
                             );
                         const courseToJSON = updatedSkill.course
-                            ? JSON.stringify(updatedSkill.course)
+                            ? updatedSkill.course.toJSON()
                             : undefined;
                         return new skillUpdatedPublisher(
                             natsWrapper.client
                         ).publish({
-                            _id: updatedSkill._id.toString(),
+                            _id: updatedSkill._id.toJSON(),
                             name: updatedSkill.name,
                             version: updatedSkill.version,
                             course: courseToJSON
@@ -346,12 +350,12 @@ export class CourseDeletedListner extends Listener<courseDeletedEvent> {
                                 'we need skill database doc details to publish this event'
                             );
                         const courseToJSON = updatedSkill.course
-                            ? JSON.stringify(updatedSkill.course)
+                            ? updatedSkill.course.toJSON()
                             : undefined;
                         return new skillUpdatedPublisher(
                             natsWrapper.client
                         ).publish({
-                            _id: updatedSkill._id.toString(),
+                            _id: updatedSkill._id.toJSON(),
                             name: updatedSkill.name,
                             version: updatedSkill.version,
                             course: courseToJSON

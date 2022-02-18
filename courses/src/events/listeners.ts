@@ -28,20 +28,22 @@ export class SkillCreatedListner extends Listener<skillCreatedEvent> {
         },
         msg: Message
     ): Promise<void> {
-        const { _id, name, version, course } = data;
-        const convertedId = new ObjectId(_id);
-        console.log('EventData', data);
-        // persist the data in the skills database created in course collection
-        const parsedCourseId = course ? new ObjectId(course) : undefined;
+        try {
+            const { _id, name, version, course } = data;
+            const convertedId = new ObjectId(_id);
+            // persist the data in the skills database created in course collection
+            const parsedCourseId = course ? new ObjectId(course) : undefined;
 
-        const skillCreated = await Skills.insertSkill({
-            _id: convertedId,
-            name: name,
-            version: version,
-            course: parsedCourseId
-        });
-        console.log('event succesfully processed by course-service');
-        msg.ack();
+            const skillCreated = await Skills.insertSkill({
+                _id: convertedId,
+                name: name,
+                version: version,
+                course: parsedCourseId
+            });
+            msg.ack();
+        } catch (err) {
+            console.log(err);
+        }
     }
 }
 
@@ -57,28 +59,32 @@ export class SkillUpdatedListner extends Listener<skillUpdatedEvent> {
         },
         msg: Message
     ): Promise<void> {
-        const { _id, name, version, course } = data;
-        const convertedId = new ObjectId(_id);
-        const existingVersion = version - 1;
-        console.log('EventData', data);
-        // persist the data in the skills database created in course collection
-        // Only process if version is 1 greater then current version in database
-        const existingSkill = await Skills.findSkillByIdAndVersion(
-            convertedId,
-            existingVersion
-        );
-        if (existingSkill) {
-            // that means you are processing right event
-            const parsedCourseId = course ? new ObjectId(course) : undefined;
+        try {
+            const { _id, name, version, course } = data;
+            const convertedId = new ObjectId(_id);
+            const existingVersion = version - 1;
+            // persist the data in the skills database created in course collection
+            // Only process if version is 1 greater then current version in database
+            const existingSkill = await Skills.findSkillByIdAndVersion(
+                convertedId,
+                existingVersion
+            );
+            if (existingSkill) {
+                // that means you are processing right event
+                const parsedCourseId = course
+                    ? new ObjectId(course)
+                    : undefined;
 
-            const skillUpdated = await Skills.updateSkill({
-                _id: convertedId,
-                name: name,
-                version: version,
-                course: parsedCourseId
-            });
-            console.log('event succesfully processed by course-service');
-            msg.ack();
+                const skillUpdated = await Skills.updateSkill({
+                    _id: convertedId,
+                    name: name,
+                    version: version,
+                    course: parsedCourseId
+                });
+                msg.ack();
+            }
+        } catch (err) {
+            console.log(err);
         }
     }
 }
@@ -110,13 +116,13 @@ export class skillDeletedListener extends Listener<skillDeletedEvent> {
                 throw new Error('cannot find skill record with skill id');
 
             // if skillId exists we have to delete it from skill database
-            // regardless this skill was assosciated with course or not
+            // regardless of whether this skill was assosciated with course or not
             const deletedSkill = await Skills.deleteSkillById(skillId);
 
             const parsedCourseId = course ? new ObjectId(course) : undefined;
 
-            // If skill was assosciated with a courswe then we need to update cpourse database to remove that skill Id
-            // If it was not assosciated we will just acknowledge that we have pprocessed the event
+            // If skill was assosciated with a courswe then we need to update course database to remove that skill Id
+            // If it was not assosciated we will just acknowledge that we have processed the event
             if (deletedSkill && parsedCourseId) {
                 // sanity check: check if the supplied courseId is correct
                 const existingCourse = await Course.getCourseById(
@@ -151,26 +157,32 @@ export class skillDeletedListener extends Listener<skillDeletedEvent> {
                 if (!updatedCourse) throw new Error('unable to update course');
 
                 // // publish the event
-                if (!updatedCourse.name || !updatedCourse.version)
+                if (
+                    !updatedCourse.name ||
+                    !updatedCourse.version ||
+                    !updatedCourse.courseURL ||
+                    !updatedCourse.learningStatus
+                )
                     throw new Error(
                         'we need course, version, database status to publish event'
                     );
 
                 const skillJSON = updatedCourse.skillId?.map((id) => {
-                    2;
-                    return JSON.stringify(id);
+                    return id.toJSON();
                 });
 
                 const languageJSON = updatedCourse.languageId?.map((id) => {
-                    return JSON.stringify(id);
+                    return id.toJSON();
                 });
 
                 await new CourseUpdatedPublisher(natsWrapper.client).publish({
                     _id: updatedCourse._id.toString(),
                     name: updatedCourse.name,
+                    courseURL: updatedCourse.courseURL,
+                    learningStatus: updatedCourse.learningStatus,
                     version: updatedCourse.version,
-                    skill: skillJSON,
-                    language: languageJSON
+                    skillId: skillJSON,
+                    languageId: languageJSON
                 });
 
                 msg.ack();
@@ -192,7 +204,6 @@ export class ProgrammingLngCreatedListner extends Listener<programmingLngCreated
     ): Promise<void> {
         const { _id, name, version } = data;
         const convertedId = new ObjectId(_id);
-        console.log('EventData', data);
         // persist the data in the skills database created in course collection
         const programmingLngCreated = await ProgrammingLng.insertProgrammingLng(
             {
@@ -201,7 +212,6 @@ export class ProgrammingLngCreatedListner extends Listener<programmingLngCreated
                 version: version
             }
         );
-        console.log('event succesfully processed by course-service');
         msg.ack();
     }
 }
@@ -216,7 +226,6 @@ export class ProgrammingLngUpdatedListner extends Listener<programmingLngUpdated
         const { _id, name, version } = data;
         const convertedId = new ObjectId(_id);
         const existingVersion = version - 1;
-        console.log('EventData', data);
         // persist the data in the skills database created in course collection
         // Only process if version is 1 greater then current version in database
         const existingProgramming =
@@ -232,7 +241,6 @@ export class ProgrammingLngUpdatedListner extends Listener<programmingLngUpdated
                     name: name,
                     version: version
                 });
-            console.log('event succesfully processed by course-service');
             msg.ack();
         }
     }
