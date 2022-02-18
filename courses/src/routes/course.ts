@@ -35,6 +35,10 @@ router.post(
                 throw new BadRequestError('please provide course name and url');
             if (!skills && !languages)
                 throw new BadRequestError('provide either skill or language');
+            if (learningStatus < 0 || learningStatus > 100)
+                throw new BadRequestError(
+                    'learnning status must be between 0 and 100'
+                );
 
             // check if courseName already exists in database
             const existingCourse = await Course.getCourseByName(courseName);
@@ -244,6 +248,11 @@ router.post(
                 );
             if (!skills && !languages)
                 throw new BadRequestError('provide either skill or language');
+
+            if (learningStatus < 0 || learningStatus > 100)
+                throw new BadRequestError(
+                    'learnning status must be between 0 and 100'
+                );
             const parsedId = new ObjectId(courseId);
             // check if course exists in database
             const existingCourse = await Course.getCourseById(parsedId);

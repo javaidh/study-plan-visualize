@@ -10,6 +10,7 @@ import { connectDb } from '../services/mongodb';
 
 import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
+import { courseRouter } from '../routes/course';
 
 interface returnSkillDocument {
     //_id: ObjectId;
@@ -217,19 +218,31 @@ export class Skills {
     //         throw new DatabaseErrors('Unable to retrieve skill from database');
     //     }
     // }
-    static async updateSkillName(updateProps: {
+    // I dont care about bookId in this service course and book have no relationship
+    static async updateSkill(updateProps: {
         _id: ObjectId;
         name: string;
         version: number;
+        course: ObjectId | undefined;
     }) {
         try {
-            const { _id, name, version } = updateProps;
             const db = await connectDb();
+            const { _id, name, version, course } = updateProps;
 
+            // if (skillId && languageId) {
             const result: UpdateResult = await db
                 .collection('skills')
-                .updateOne({ _id }, { $set: { name: name, version: version } });
-            return result.acknowledged;
+                .updateOne(
+                    { _id },
+                    {
+                        $set: {
+                            name: name,
+                            version: version,
+                            course: course
+                        }
+                    }
+                );
+            return result.modifiedCount === 1;
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors('Unable to retrieve skill from database');

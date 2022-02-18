@@ -42,12 +42,19 @@ router.post(
                 throw new Error(
                     'we need skill name to publish skill:created event'
                 );
-
+            const courseToJSON = skillDoc.course
+                ? JSON.stringify(skillDoc.course)
+                : undefined;
+            const bookToJSON = skillDoc.book
+                ? JSON.stringify(skillDoc.book)
+                : undefined;
             // publish skillCreatedEvent
             await new skillCreatedPublisher(natsWrapper.client).publish({
                 _id: skillDoc._id.toString(),
                 name: skillDoc.name,
-                version: skillDoc.version
+                version: skillDoc.version,
+                course: courseToJSON,
+                book: bookToJSON
             });
             res.status(201).send({ data: skillCreated });
         } catch (err) {
@@ -95,24 +102,35 @@ router.post(
             const { id } = req.body;
             if (!id)
                 throw new BadRequestError('please provide id to delete skill');
+
             const _id = new ObjectId(id);
-            // find skill with id get the version number increment version number, update the record, publish the record to nats
+
             const skillArray = await Skills.getSkillById(_id);
-            if (!skillArray)
+            if (!skillArray?.length)
                 throw new Error('cannot find skill with the required id');
-            const skill = skillArray[0];
-            if (!skill.version || !skill.name)
-                throw new Error(
-                    'version dbStatus and name are needed to update record'
-                );
-            // id is used to find the record
+
             const skillDeleted = await Skills.deleteSkillById(_id);
 
+            // publish event
             if (skillDeleted) {
+                const skill = skillArray[0];
+                if (!skill.version || !skill.name)
+                    throw new Error(
+                        'version dbStatus and name are needed to update record'
+                    );
+                const courseToJSON = skill.course
+                    ? JSON.stringify(skill.course)
+                    : undefined;
+                const bookToJSON = skill.book
+                    ? JSON.stringify(skill.book)
+                    : undefined;
+
                 await new skillDeletedPublisher(natsWrapper.client).publish({
                     _id: skill._id.toString(),
                     name: skill.name,
-                    version: skill.version
+                    version: skill.version,
+                    course: courseToJSON,
+                    book: bookToJSON
                 });
             }
             res.status(201).send({ data: skillDeleted });
@@ -169,10 +187,18 @@ router.post(
                     throw new Error(
                         'we need skill database doc details to publish this event'
                     );
+                const courseToJSON = skillDoc.course
+                    ? JSON.stringify(skillDoc.course)
+                    : undefined;
+                const bookToJSON = skillDoc.book
+                    ? JSON.stringify(skillDoc.book)
+                    : undefined;
                 await new skillUpdatedPublisher(natsWrapper.client).publish({
                     _id: skillDoc._id.toString(),
                     name: skillDoc.name,
-                    version: skillDoc.version
+                    version: skillDoc.version,
+                    course: courseToJSON,
+                    book: bookToJSON
                 });
             }
             res.status(201).send({ data: updatedSkill });
@@ -229,10 +255,18 @@ router.post(
                     throw new Error(
                         'we need skill database doc details to publish this event'
                     );
+                const courseToJSON = skillDoc.course
+                    ? JSON.stringify(skillDoc.course)
+                    : undefined;
+                const bookToJSON = skillDoc.book
+                    ? JSON.stringify(skillDoc.book)
+                    : undefined;
                 await new skillUpdatedPublisher(natsWrapper.client).publish({
                     _id: skillDoc._id.toString(),
                     name: skillDoc.name,
-                    version: skillDoc.version
+                    version: skillDoc.version,
+                    course: courseToJSON,
+                    book: bookToJSON
                 });
             }
 

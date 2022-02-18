@@ -244,4 +244,23 @@ export class Course {
             );
         }
     }
+
+    static async updateCourseRemoveSkillId(
+        _id: ObjectId,
+        version: number,
+        skillId: ObjectId
+    ) {
+        try {
+            const db = await connectDb();
+            const result: UpdateResult = await db
+                .collection('course')
+                .updateOne({ _id }, { $pull: { skillId }, $set: { version } });
+            return result.modifiedCount === 1;
+        } catch (err) {
+            logErrorMessage(err);
+            throw new DatabaseErrors(
+                'No such document exist with id and version'
+            );
+        }
+    }
 }

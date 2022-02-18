@@ -12,7 +12,8 @@ import {
     SkillCreatedListner,
     SkillUpdatedListner,
     ProgrammingLngCreatedListner,
-    ProgrammingLngUpdatedListner
+    ProgrammingLngUpdatedListner,
+    skillDeletedListener
 } from './events/listeners';
 import { connectDb } from './services/mongodb';
 import { courseRouter } from './routes/course';
@@ -56,6 +57,7 @@ const startServer = async () => {
         new SkillCreatedListner(natsWrapper.client).listen();
         new SkillUpdatedListner(natsWrapper.client).listen();
         // TODO: manual check these routes
+        new skillDeletedListener(natsWrapper.client).listen();
         new ProgrammingLngCreatedListner(natsWrapper.client).listen();
         new ProgrammingLngUpdatedListner(natsWrapper.client).listen();
 
