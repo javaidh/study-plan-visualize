@@ -16,9 +16,10 @@ import { Course } from '../models/course';
 import { ProgrammingLng } from '../models/programmingLng';
 import { ObjectId } from 'mongodb';
 
+const queueGroupName = 'course-service';
 export class SkillCreatedListner extends Listener<skillCreatedEvent> {
     readonly subject = Subjects.SkillCreated;
-    queueGroupName = 'course-service';
+    queueGroupName = queueGroupName;
     async onMessage(
         data: {
             _id: string;
@@ -49,7 +50,7 @@ export class SkillCreatedListner extends Listener<skillCreatedEvent> {
 
 export class SkillUpdatedListner extends Listener<skillUpdatedEvent> {
     readonly subject = Subjects.SkillUpdated;
-    queueGroupName = 'course-service';
+    queueGroupName = queueGroupName;
     async onMessage(
         data: {
             _id: string;
@@ -91,7 +92,7 @@ export class SkillUpdatedListner extends Listener<skillUpdatedEvent> {
 
 export class skillDeletedListener extends Listener<skillDeletedEvent> {
     readonly subject = Subjects.SkillDeleted;
-    queueGroupName = 'course-service';
+    queueGroupName = queueGroupName;
 
     async onMessage(
         data: {
@@ -104,6 +105,8 @@ export class skillDeletedListener extends Listener<skillDeletedEvent> {
     ): Promise<void> {
         try {
             const { _id, version, course } = data;
+            console.log('we recieved event to delete !!!!!!!!!!!!!!!!');
+            console.log(data, 'data');
 
             // sanity check: check if skill exists in skill database in course service
             const skillId = new ObjectId(_id);
@@ -120,7 +123,7 @@ export class skillDeletedListener extends Listener<skillDeletedEvent> {
             const deletedSkill = await Skills.deleteSkillById(skillId);
 
             const parsedCourseId = course ? new ObjectId(course) : undefined;
-
+            console.log('parsedCourseId', parsedCourseId);
             // If skill was assosciated with a courswe then we need to update course database to remove that skill Id
             // If it was not assosciated we will just acknowledge that we have processed the event
             if (deletedSkill && parsedCourseId) {
@@ -195,53 +198,53 @@ export class skillDeletedListener extends Listener<skillDeletedEvent> {
     }
 }
 
-export class ProgrammingLngCreatedListner extends Listener<programmingLngCreatedEvent> {
-    readonly subject = Subjects.ProgrammingLanguageCreated;
-    queueGroupName = 'course-service';
-    async onMessage(
-        data: { _id: string; name: string; version: number; dbStatus: string },
-        msg: Message
-    ): Promise<void> {
-        const { _id, name, version } = data;
-        const convertedId = new ObjectId(_id);
-        // persist the data in the skills database created in course collection
-        const programmingLngCreated = await ProgrammingLng.insertProgrammingLng(
-            {
-                _id: convertedId,
-                name: name,
-                version: version
-            }
-        );
-        msg.ack();
-    }
-}
+// export class ProgrammingLngCreatedListner extends Listener<programmingLngCreatedEvent> {
+//     readonly subject = Subjects.ProgrammingLanguageCreated;
+//     queueGroupName = 'course-service';
+//     async onMessage(
+//         data: { _id: string; name: string; version: number; dbStatus: string },
+//         msg: Message
+//     ): Promise<void> {
+//         const { _id, name, version } = data;
+//         const convertedId = new ObjectId(_id);
+//         // persist the data in the skills database created in course collection
+//         const programmingLngCreated = await ProgrammingLng.insertProgrammingLng(
+//             {
+//                 _id: convertedId,
+//                 name: name,
+//                 version: version
+//             }
+//         );
+//         msg.ack();
+//     }
+// }
 
-export class ProgrammingLngUpdatedListner extends Listener<programmingLngUpdatedEvent> {
-    readonly subject = Subjects.ProgrammingLanguageUpdated;
-    queueGroupName = 'course-service';
-    async onMessage(
-        data: { _id: string; name: string; version: number },
-        msg: Message
-    ): Promise<void> {
-        const { _id, name, version } = data;
-        const convertedId = new ObjectId(_id);
-        const existingVersion = version - 1;
-        // persist the data in the skills database created in course collection
-        // Only process if version is 1 greater then current version in database
-        const existingProgramming =
-            await ProgrammingLng.findProgrammingLngByIdAndVersion(
-                convertedId,
-                existingVersion
-            );
-        if (existingProgramming) {
-            // that means you are processing right event
-            const programmingUpdated =
-                await ProgrammingLng.updateProgrammingLngName({
-                    _id: convertedId,
-                    name: name,
-                    version: version
-                });
-            msg.ack();
-        }
-    }
-}
+// export class ProgrammingLngUpdatedListner extends Listener<programmingLngUpdatedEvent> {
+//     readonly subject = Subjects.ProgrammingLanguageUpdated;
+//     queueGroupName = 'course-service';
+//     async onMessage(
+//         data: { _id: string; name: string; version: number },
+//         msg: Message
+//     ): Promise<void> {
+//         const { _id, name, version } = data;
+//         const convertedId = new ObjectId(_id);
+//         const existingVersion = version - 1;
+//         // persist the data in the skills database created in course collection
+//         // Only process if version is 1 greater then current version in database
+//         const existingProgramming =
+//             await ProgrammingLng.findProgrammingLngByIdAndVersion(
+//                 convertedId,
+//                 existingVersion
+//             );
+//         if (existingProgramming) {
+//             // that means you are processing right event
+//             const programmingUpdated =
+//                 await ProgrammingLng.updateProgrammingLngName({
+//                     _id: convertedId,
+//                     name: name,
+//                     version: version
+//                 });
+//             msg.ack();
+//         }
+//     }
+// }

@@ -140,62 +140,27 @@ export class Skills {
         }
     }
 
-    static async updateSkillByCourseBook(updateProps: {
+    static async updateSkillByCourse(updateProps: {
         _id: ObjectId;
         version: number;
-        course?: ObjectId;
-        book?: ObjectId;
+        course: ObjectId | undefined;
     }) {
         try {
             const db = await connectDb();
-            const { _id, version, course, book } = updateProps;
-
-            if (course && book) {
-                console.log('inside course & book');
-                const result: UpdateResult = await db
-                    .collection('skills')
-                    .updateOne(
-                        { _id },
-                        {
-                            $set: {
-                                version: version,
-                                course: course,
-                                book: book
-                            }
+            const { _id, version, course } = updateProps;
+            console.log('update props inisde updateSkillcourse', updateProps);
+            const result: UpdateResult = await db
+                .collection('skills')
+                .updateOne(
+                    { _id },
+                    {
+                        $set: {
+                            version: version,
+                            course: course
                         }
-                    );
-                return result.acknowledged;
-            }
-
-            if (course && !book) {
-                const result: UpdateResult = await db
-                    .collection('skills')
-                    .updateOne(
-                        { _id },
-                        {
-                            $set: {
-                                version: version,
-                                course: course
-                            }
-                        }
-                    );
-                return result.acknowledged;
-            }
-
-            if (!course && book) {
-                const result: UpdateResult = await db
-                    .collection('skills')
-                    .updateOne(
-                        { _id },
-                        {
-                            $set: {
-                                version: version,
-                                book: book
-                            }
-                        }
-                    );
-                return result.acknowledged;
-            }
+                    }
+                );
+            return result.acknowledged;
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors('Unable to retrieve skill from database');

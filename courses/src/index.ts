@@ -11,8 +11,8 @@ import { natsWrapper } from '../nats-wrapper';
 import {
     SkillCreatedListner,
     SkillUpdatedListner,
-    ProgrammingLngCreatedListner,
-    ProgrammingLngUpdatedListner,
+    //ProgrammingLngCreatedListner,
+    //ProgrammingLngUpdatedListner,
     skillDeletedListener
 } from './events/listeners';
 import { connectDb } from './services/mongodb';
@@ -58,8 +58,8 @@ const startServer = async () => {
         new SkillUpdatedListner(natsWrapper.client).listen();
         // TODO: manual check these routes
         new skillDeletedListener(natsWrapper.client).listen();
-        new ProgrammingLngCreatedListner(natsWrapper.client).listen();
-        new ProgrammingLngUpdatedListner(natsWrapper.client).listen();
+        // new ProgrammingLngCreatedListner(natsWrapper.client).listen();
+        //new ProgrammingLngUpdatedListner(natsWrapper.client).listen();
 
         // connect to db
         await connectDb();
