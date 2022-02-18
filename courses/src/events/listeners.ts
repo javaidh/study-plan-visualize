@@ -237,14 +237,3 @@ export class ProgrammingLngUpdatedListner extends Listener<programmingLngUpdated
         }
     }
 }
-
-// Delete Skill
-/*
-Adjust event common module to include bookId and courseId to skill created updated delete event
-course service only concerned with courseId. It will store that in its db on creation update etc
-we will delete skill from skilldatabase in course id
- then we will update coursedatabase in course service to remove that id
-after course has been updated we will check if course has any values in language or skill array
-if not we will delete it
-only after checking we will emit event accordingly
-*/

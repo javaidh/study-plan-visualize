@@ -11,6 +11,11 @@ import { natsWrapper } from './nats-wrapper';
 import { connectDb } from './services/mongodb';
 import { skillRouter } from './routes/skills';
 import { errorHandler } from './middlewares/errorHandler';
+import {
+    CourseCreatedListner,
+    CourseUpdatedListner,
+    CourseDeletedListner
+} from './events/listeners';
 import swaggerDocument from './swagger/skill-api.json';
 
 const PORT = process.env.PORT || 4000;
@@ -44,6 +49,11 @@ const startServer = async () => {
 
         process.on('SIGINT', () => natsWrapper.client.close());
         process.on('SIGTERM', () => natsWrapper.client.close());
+
+        // listen for events
+        new CourseCreatedListner(natsWrapper.client).listen();
+        new CourseUpdatedListner(natsWrapper.client).listen();
+        new CourseDeletedListner(natsWrapper.client).listen();
         // connect to db
         await connectDb();
 
