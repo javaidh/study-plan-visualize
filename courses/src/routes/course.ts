@@ -1,11 +1,11 @@
 import express, { NextFunction, Response, Request } from 'express';
 import { ObjectId } from 'mongodb';
+import { natsWrapper } from '../../nats-wrapper';
 import {
     CustomRequest,
     AddCourse,
     StringBody
 } from '../types/interfaceRequest';
-import { natsWrapper } from '../../nats-wrapper';
 import {
     CourseCreatedPublisher,
     CourseDeletedPublisher,
@@ -27,7 +27,6 @@ router.post(
         res: Response,
         next: NextFunction
     ) => {
-        // do a check on learning status field
         try {
             const { courseName, courseURL, skills, languages, learningStatus } =
                 req.body;
@@ -48,35 +47,8 @@ router.post(
             let skillId: ObjectId[] | undefined;
             let languageId: ObjectId[] | undefined;
 
-            //check skill and language values exist in database
-            if (skills && languages) {
-                const promiseSkillArray = skills.map((skill) => {
-                    const parsedId = new ObjectId(skill.id);
-                    return Skills.findSkillByIdAndName(parsedId, skill.name);
-                });
-
-                const promiselanguageArray = languages.map((language) => {
-                    const parsedId = new ObjectId(language.id);
-                    return ProgrammingLng.findProgrammingLngByIdAndname(
-                        parsedId,
-                        language.name
-                    );
-                });
-
-                const allSkills = await Promise.all(promiseSkillArray);
-                const allLanguages = await Promise.all(promiselanguageArray);
-
-                // map and only keep ids to store in course database
-                skillId = allSkills.map((skill) => {
-                    return skill._id;
-                });
-
-                languageId = allLanguages.map((language) => {
-                    return language._id;
-                });
-            }
-            //check skill or language values exist in database
-            if (skills && !languages) {
+            //check if skillId and name supplied by user exist in database
+            if (skills) {
                 const promiseSkillArray = skills.map((skill) => {
                     const parsedId = new ObjectId(skill.id);
                     return Skills.findSkillByIdAndName(parsedId, skill.name);
@@ -89,8 +61,8 @@ router.post(
                     return skill._id;
                 });
             }
-            //check skill or language values exist in database
-            if (!skills && languages) {
+            //check if languageId and name supplied by user exist in database
+            if (languages) {
                 const promiselanguageArray = languages.map((language) => {
                     const parsedId = new ObjectId(language.id);
                     return ProgrammingLng.findProgrammingLngByIdAndname(
@@ -117,6 +89,7 @@ router.post(
 
             if (!courseCreated.length)
                 throw new DatabaseErrors('unable to create course');
+
             // publish the event
             const courseDoc = courseCreated[0];
             if (
@@ -143,7 +116,7 @@ router.post(
                 skillId: skillJSON,
                 languageId: languageJSON
             });
-            res.status(200).send({ data: courseCreated });
+            res.status(201).send({ data: courseCreated });
         } catch (err) {
             logErrorMessage(err);
             next(err);
@@ -294,35 +267,8 @@ router.post(
             let newSkillId: ObjectId[] | undefined;
             let newLanguageId: ObjectId[] | undefined;
 
-            //check skill and language values exist in database
-            if (skills && languages) {
-                const promiseSkillArray = skills.map((skill) => {
-                    const parsedId = new ObjectId(skill.id);
-                    return Skills.findSkillByIdAndName(parsedId, skill.name);
-                });
-
-                const promiselanguageArray = languages.map((language) => {
-                    const parsedId = new ObjectId(language.id);
-                    return ProgrammingLng.findProgrammingLngByIdAndname(
-                        parsedId,
-                        language.name
-                    );
-                });
-
-                const allSkills = await Promise.all(promiseSkillArray);
-                const allLanguages = await Promise.all(promiselanguageArray);
-
-                // map and only keep ids to store in cpurse database
-                newSkillId = allSkills.map((skill) => {
-                    return skill._id;
-                });
-
-                newLanguageId = allLanguages.map((language) => {
-                    return language._id;
-                });
-            }
-            //check skill or language values exist in database
-            if (skills && !languages) {
+            //check if skillId and name supplied by user exist in database
+            if (skills) {
                 const promiseSkillArray = skills.map((skill) => {
                     const parsedId = new ObjectId(skill.id);
                     return Skills.findSkillByIdAndName(parsedId, skill.name);
@@ -335,8 +281,8 @@ router.post(
                     return skill._id;
                 });
             }
-            //check skill or language values exist in database
-            if (!skills && languages) {
+            //check if languageId and name supplied by user exist in database
+            if (languages) {
                 const promiselanguageArray = languages.map((language) => {
                     const parsedId = new ObjectId(language.id);
                     return ProgrammingLng.findProgrammingLngByIdAndname(
@@ -344,7 +290,6 @@ router.post(
                         language.name
                     );
                 });
-
                 const allLanguages = await Promise.all(promiselanguageArray);
 
                 // map and only keep ids to store in course database
@@ -374,7 +319,7 @@ router.post(
             if (!updatedCourse)
                 throw new DatabaseErrors('unable to update course');
 
-            // // publish the event
+            // publish the event
             if (
                 !updatedCourse.name ||
                 !updatedCourse.version ||

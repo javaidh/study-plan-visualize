@@ -24,15 +24,14 @@ router.post(
             const { name } = req.body;
             if (!name)
                 throw new BadRequestError('please provide name for skill');
-
+            const dbStatus = databaseStatus.active;
             // check if active entries in the db already have skill with this name
-            const existingSkill = await Skills.getSkillByName(name);
+            const existingSkill = await Skills.getSkillByName(name, dbStatus);
             if (existingSkill?.length) {
                 throw new BadRequestError('skill name already in use');
             }
             // first time default version to 1
             const version = 1;
-            const dbStatus = databaseStatus.active;
             const skillDoc = await Skills.insertSkill({
                 name,
                 version,
@@ -70,7 +69,8 @@ router.get(
     '/api/skills/all',
     async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {
         try {
-            const skills = await Skills.getAllSkills();
+            const dbStatus = databaseStatus.active;
+            const skills = await Skills.getAllSkills(databaseStatus.active);
             console.log(skills);
             res.status(200).send({ data: skills });
         } catch (err) {
@@ -139,72 +139,72 @@ router.post(
     }
 );
 
-// update skills
-// TODO: this update logic will happen when event recieved so this is not a route
-// this is a course updated or book updated event. This will not change skill name
-router.post(
-    '/api/skills/updateEvent',
-    async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {
-        try {
-            let { id, courseId, bookId } = req.body;
-            if (!id)
-                throw new BadRequestError('please provide id to update skill');
+// // update skills
+// // TODO: this update logic will happen when event recieved so this is not a route
+// // this is a course updated or book updated event. This will not change skill name
+// router.post(
+//     '/api/skills/updateEvent',
+//     async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {
+//         try {
+//             let { id, courseId, bookId } = req.body;
+//             if (!id)
+//                 throw new BadRequestError('please provide id to update skill');
 
-            //sanitize id
-            const _id = new ObjectId(id);
-            const course = courseId ? new ObjectId(courseId) : undefined;
-            const book = bookId ? new ObjectId(bookId) : undefined;
+//             //sanitize id
+//             const _id = new ObjectId(id);
+//             const course = courseId ? new ObjectId(courseId) : undefined;
+//             const book = bookId ? new ObjectId(bookId) : undefined;
 
-            const skill = await Skills.getSkillById(_id);
-            if (!skill)
-                throw new Error('cannot find skill with the required id');
-            if (!skill.version || !skill.name)
-                throw new Error(
-                    'version dbStatus and name are needed to update record'
-                );
-            const newVersion = skill.version + 1;
-            // TODO: fix this later we have removed book
-            const updateSkill = await Skills.updateSkillByCourse({
-                _id,
-                version: newVersion,
-                course
-            });
+//             const skill = await Skills.getSkillById(_id);
+//             if (!skill)
+//                 throw new Error('cannot find skill with the required id');
+//             if (!skill.version || !skill.name)
+//                 throw new Error(
+//                     'version dbStatus and name are needed to update record'
+//                 );
+//             const newVersion = skill.version + 1;
+//             // TODO: fix this later we have removed book
+//             const updateSkill = await Skills.updateSkillByCourse({
+//                 _id,
+//                 version: newVersion,
+//                 course
+//             });
 
-            if (!updateSkill)
-                throw new DatabaseErrors('unable to update fields');
+//             if (!updateSkill)
+//                 throw new DatabaseErrors('unable to update fields');
 
-            // find updated skill to publish event and send to front -end
-            const skillDoc = await Skills.findSkillByIdAndVersion(
-                _id,
-                newVersion
-            );
+//             // find updated skill to publish event and send to front -end
+//             const skillDoc = await Skills.findSkillByIdAndVersion(
+//                 _id,
+//                 newVersion
+//             );
 
-            if (skillDoc) {
-                if (!skillDoc.version || !skillDoc.name)
-                    throw new Error(
-                        'we need skill database doc details to publish this event'
-                    );
-                const courseToJSON = skillDoc.course
-                    ? skillDoc.course.toJSON()
-                    : undefined;
-                const bookToJSON = skillDoc.book
-                    ? skillDoc.book.toJSON()
-                    : undefined;
-                await new skillUpdatedPublisher(natsWrapper.client).publish({
-                    _id: skillDoc._id.toString(),
-                    name: skillDoc.name,
-                    version: skillDoc.version,
-                    course: courseToJSON,
-                    book: bookToJSON
-                });
-            }
-            res.status(201).send({ data: [skillDoc] });
-        } catch (err) {
-            logErrorMessage(err);
-            next(err);
-        }
-    }
-);
+//             if (skillDoc) {
+//                 if (!skillDoc.version || !skillDoc.name)
+//                     throw new Error(
+//                         'we need skill database doc details to publish this event'
+//                     );
+//                 const courseToJSON = skillDoc.course
+//                     ? skillDoc.course.toJSON()
+//                     : undefined;
+//                 const bookToJSON = skillDoc.book
+//                     ? skillDoc.book.toJSON()
+//                     : undefined;
+//                 await new skillUpdatedPublisher(natsWrapper.client).publish({
+//                     _id: skillDoc._id.toString(),
+//                     name: skillDoc.name,
+//                     version: skillDoc.version,
+//                     course: courseToJSON,
+//                     book: bookToJSON
+//                 });
+//             }
+//             res.status(201).send({ data: [skillDoc] });
+//         } catch (err) {
+//             logErrorMessage(err);
+//             next(err);
+//         }
+//     }
+// );
 
 router.post(
     '/api/skills/update',
@@ -216,7 +216,8 @@ router.post(
                     'please provide id and name to update skill'
                 );
             // check if a skill already exists with that name thsi functions internally only checks active value
-            const existingSkill = await Skills.getSkillByName(name);
+            const dbStatus = databaseStatus.active;
+            const existingSkill = await Skills.getSkillByName(name, dbStatus);
             if (existingSkill?.length) {
                 throw new BadRequestError(
                     'The skill name you are trying to update is already in use please provide new name'

@@ -1,4 +1,5 @@
 import { Message } from 'node-nats-streaming';
+import { ObjectId } from 'mongodb';
 import {
     Listener,
     Subjects,
@@ -9,24 +10,19 @@ import {
     programmingLngUpdatedEvent,
     programmingLngDeletedEvent
 } from '@ai-common-modules/events';
+
+import { queueGroupName } from './quegroup';
 import { natsWrapper } from '../../nats-wrapper';
 import { CourseUpdatedPublisher } from './publishers';
 import { Skills } from '../models/skills';
 import { Course } from '../models/course';
 import { ProgrammingLng } from '../models/programmingLng';
-import { ObjectId } from 'mongodb';
 
-const queueGroupName = 'course-service';
 export class SkillCreatedListner extends Listener<skillCreatedEvent> {
     readonly subject = Subjects.SkillCreated;
     queueGroupName = queueGroupName;
     async onMessage(
-        data: {
-            _id: string;
-            name: string;
-            version: number;
-            course: string | undefined;
-        },
+        data: skillCreatedEvent['data'],
         msg: Message
     ): Promise<void> {
         try {
@@ -52,12 +48,7 @@ export class SkillUpdatedListner extends Listener<skillUpdatedEvent> {
     readonly subject = Subjects.SkillUpdated;
     queueGroupName = queueGroupName;
     async onMessage(
-        data: {
-            _id: string;
-            name: string;
-            version: number;
-            course: string | undefined;
-        },
+        data: skillUpdatedEvent['data'],
         msg: Message
     ): Promise<void> {
         try {
@@ -95,18 +86,11 @@ export class skillDeletedListener extends Listener<skillDeletedEvent> {
     queueGroupName = queueGroupName;
 
     async onMessage(
-        data: {
-            _id: string;
-            name: string;
-            version: number;
-            course: string | undefined;
-        },
+        data: skillDeletedEvent['data'],
         msg: Message
     ): Promise<void> {
         try {
             const { _id, version, course } = data;
-            console.log('we recieved event to delete !!!!!!!!!!!!!!!!');
-            console.log(data, 'data');
 
             // sanity check: check if skill exists in skill database in course service
             const skillId = new ObjectId(_id);
@@ -123,8 +107,8 @@ export class skillDeletedListener extends Listener<skillDeletedEvent> {
             const deletedSkill = await Skills.deleteSkillById(skillId);
 
             const parsedCourseId = course ? new ObjectId(course) : undefined;
-            console.log('parsedCourseId', parsedCourseId);
-            // If skill was assosciated with a courswe then we need to update course database to remove that skill Id
+
+            // If skill was assosciated with a course then we need to update course database to remove that skill Id
             // If it was not assosciated we will just acknowledge that we have processed the event
             if (deletedSkill && parsedCourseId) {
                 // sanity check: check if the supplied courseId is correct
@@ -159,7 +143,7 @@ export class skillDeletedListener extends Listener<skillDeletedEvent> {
                 );
                 if (!updatedCourse) throw new Error('unable to update course');
 
-                // // publish the event
+                // publish the event
                 if (
                     !updatedCourse.name ||
                     !updatedCourse.version ||
