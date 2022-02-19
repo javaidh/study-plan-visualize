@@ -13,7 +13,7 @@ import { DatabaseErrors } from '../errors/databaseErrors';
 import { courseRouter } from '../routes/course';
 
 interface returnSkillDocument {
-    //_id: ObjectId;
+    _id?: ObjectId;
     name?: string;
     course?: ObjectId;
     book?: ObjectId;
@@ -25,8 +25,6 @@ interface insertSkillDocument {
     name: string;
     course?: ObjectId;
     book?: ObjectId;
-    // we are using version property to keep track of events emitted by this service
-    // In other services we have to process events in order to avoid data issues
     version: number;
 }
 
@@ -49,42 +47,6 @@ export class Skills {
         }
     }
 
-    static async getSkillByName(name: string) {
-        try {
-            const db = await connectDb();
-            const result: WithId<returnSkillDocument>[] = await db
-                .collection('skills')
-                .find({ name })
-                .toArray();
-            if (!result)
-                throw new DatabaseErrors(
-                    'Unable to retrieve skill from database'
-                );
-            return result;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors('Unable to retrieve skill from database');
-        }
-    }
-
-    // static async getAllSkills(): Promise<returnSkillDocument[] | undefined> {
-    //     try {
-    //         const db = await connectDb();
-    //         const result: WithId<returnSkillDocument>[] = await db
-    //             .collection('skills')
-    //             .find({})
-    //             .toArray();
-    //         if (!result)
-    //             throw new DatabaseErrors(
-    //                 'Unable to retrieve skill from database'
-    //             );
-    //         return result;
-    //     } catch (err) {
-    //         logErrorMessage(err);
-    //         throw new DatabaseErrors('Unable to retrieve skill from database');
-    //     }
-    // }
-
     static async getSkillById(_id: ObjectId) {
         try {
             const db = await connectDb();
@@ -103,6 +65,7 @@ export class Skills {
             throw new DatabaseErrors('Unable to retrieve skill from database');
         }
     }
+
     static async findSkillByIdAndVersion(_id: ObjectId, version: number) {
         try {
             console.log(
@@ -162,68 +125,6 @@ export class Skills {
         }
     }
 
-    // static async updateSkill(updateProps: {
-    //     _id: ObjectId;
-    //     version: number;
-    //     course?: ObjectId;
-    //     book?: ObjectId;
-    // }) {
-    //     try {
-    //         const db = await connectDb();
-    //         const { _id, version, course, book } = updateProps;
-
-    //         if (course && book) {
-    //             console.log('inside course & book');
-    //             const result: UpdateResult = await db
-    //                 .collection('skills')
-    //                 .updateOne(
-    //                     { _id },
-    //                     {
-    //                         $set: {
-    //                             version: version,
-    //                             course: course,
-    //                             book: book
-    //                         }
-    //                     }
-    //                 );
-    //             return result.acknowledged;
-    //         }
-
-    //         if (course && !book) {
-    //             const result: UpdateResult = await db
-    //                 .collection('skills')
-    //                 .updateOne(
-    //                     { _id },
-    //                     {
-    //                         $set: {
-    //                             version: version,
-    //                             course: course
-    //                         }
-    //                     }
-    //                 );
-    //             return result.acknowledged;
-    //         }
-
-    //         if (!course && book) {
-    //             const result: UpdateResult = await db
-    //                 .collection('skills')
-    //                 .updateOne(
-    //                     { _id },
-    //                     {
-    //                         $set: {
-    //                             version: version,
-    //                             book: book
-    //                         }
-    //                     }
-    //                 );
-    //             return result.acknowledged;
-    //         }
-    //     } catch (err) {
-    //         logErrorMessage(err);
-    //         throw new DatabaseErrors('Unable to retrieve skill from database');
-    //     }
-    // }
-    // I dont care about bookId in this service course and book have no relationship
     static async updateSkill(updateProps: {
         _id: ObjectId;
         name: string;

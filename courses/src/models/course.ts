@@ -12,7 +12,7 @@ import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
 
 interface returnCourseDocument {
-    //_id: ObjectId;
+    _id?: ObjectId;
     name?: string;
     courseURL?: string;
     learningStatus?: number;
@@ -181,43 +181,6 @@ export class Course {
                     }
                 );
             return result.modifiedCount === 1;
-            // }
-
-            // if (skillId && !languageId) {
-            //     const result: UpdateResult = await db
-            //         .collection('course')
-            //         .updateOne(
-            //             { _id },
-            //             {
-            //                 $set: {
-            //                     name: name,
-            //                     courseURL: courseURL,
-            //                     learningStatus: learningStatus,
-            //                     version: version,
-            //                     skillId: skillId
-            //                 }
-            //             }
-            //         );
-            //     return result.modifiedCount === 1;
-            // }
-
-            // if (!skillId && languageId) {
-            //     const result: UpdateResult = await db
-            //         .collection('course')
-            //         .updateOne(
-            //             { _id },
-            //             {
-            //                 $set: {
-            //                     name: name,
-            //                     courseURL: courseURL,
-            //                     learningStatus: learningStatus,
-            //                     version: version,
-            //                     languageId: languageId
-            //                 }
-            //             }
-            //         );
-            //     return result.modifiedCount === 1;
-            // }
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors('Unable to update course in database');

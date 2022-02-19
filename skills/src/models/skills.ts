@@ -30,8 +30,6 @@ interface insertSkillDocument {
     name: string;
     course?: ObjectId;
     book?: ObjectId;
-    // we are using version property to keep track of events emitted by this service
-    // In other services we have to process events in order to avoid data issues
     version: number;
     dbStatus?: databaseStatus;
 }
@@ -56,13 +54,14 @@ export class Skills {
     }
 
     static async getSkillByName(
-        name: string
+        name: string,
+        dbStatus: databaseStatus
     ): Promise<returnSkillDocument[] | undefined> {
         try {
             const db = await connectDb();
             const result: WithId<returnSkillDocument>[] = await db
                 .collection('skills')
-                .find({ name })
+                .find({ name, dbStatus })
                 .toArray();
             if (!result)
                 throw new DatabaseErrors(
@@ -75,12 +74,14 @@ export class Skills {
         }
     }
 
-    static async getAllSkills(): Promise<returnSkillDocument[] | undefined> {
+    static async getAllSkills(
+        dbStatus: databaseStatus
+    ): Promise<returnSkillDocument[] | undefined> {
         try {
             const db = await connectDb();
             const result: WithId<returnSkillDocument>[] = await db
                 .collection('skills')
-                .find({})
+                .find({ dbStatus })
                 .toArray();
             if (!result)
                 throw new DatabaseErrors(

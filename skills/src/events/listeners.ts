@@ -1,5 +1,5 @@
 import { Message } from 'node-nats-streaming';
-import { natsWrapper } from '../nats-wrapper';
+import { ObjectId } from 'mongodb';
 import {
     Listener,
     Subjects,
@@ -7,12 +7,11 @@ import {
     courseDeletedEvent,
     courseUpdatedEvent
 } from '@ai-common-modules/events';
+import { natsWrapper } from '../nats-wrapper';
+import { queueGroupName } from './quegroup';
 import { Course } from '../models/course';
-import { ObjectId } from 'mongodb';
 import { databaseStatus, Skills } from '../models/skills';
 import { skillUpdatedPublisher } from './publishers';
-
-const queueGroupName = 'skills-service';
 
 export class CourseCreatedListner extends Listener<courseCreatedEvent> {
     readonly subject = Subjects.CourseCreated;
@@ -113,12 +112,9 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
         msg: Message
     ): Promise<void> {
         try {
-            //TODO:
-            // only act on skillId values that are not deleted in database
-            // only check in deletion case
             const { _id, name, courseURL, learningStatus, skillId, version } =
                 data;
-            // first find the course with the assosciated id only update if version is correct
+            // find the course with the assosciated id: update only if the event version document is correct
             const parsedCourseId = new ObjectId(_id);
             const existingCourseVersion = version - 1;
             const existingCourse = await Course.getCourseByIdAndVersion(
@@ -153,6 +149,8 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
 
             // 2/4 this is the case when there were existing skillId in old version of course but no more skillId now
             // we simply remove courseId from all records in skill database
+            // This holds an edge case. What if course update event is triggered by skill delete event and skill and course had a previos relationship
+            // So we will only update active skills records
             if (!parsedSkillIdArray && existingCourse.skillId) {
                 console.log('inside 2nd case');
                 const parsedSkillArray = existingCourse.skillId.map(
@@ -279,9 +277,12 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
             }
             // 4/4 where skill already has relationship with course but some relationship bewteen skill and course changed in this version
             // We need to find out which relationship have been updated
+            // This might also hold the edge case where skill delete triggered a course update event
             if (parsedSkillIdArray && existingCourse.skillId) {
-                console.log('inside 4th case');
-                // create a copy of parsedSkillIdArray
+                // we will create two arrays one with oldSkillId and one with new SkillIds
+                // we will compare both of them to see which skillId have been removed and which ahve been added and which skillId have remain same
+
+                // create a copy of parsedSkillIdArray: newSkillAray recieved in courseUpdatedEvent
                 let newSkillIdtoBeProcessed: {
                     id: ObjectId;
                     found: boolean;
@@ -290,6 +291,7 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
                     const value = parsedSkillIdArray[x];
                     newSkillIdtoBeProcessed[x] = { id: value, found: true };
                 }
+                // create a skillId copy of the oldSkillArray: skillArray in existingCourse
                 const exisitngSkillId: {
                     id: ObjectId;
                     found: boolean;
@@ -299,11 +301,12 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
                     exisitngSkillId[x] = { id: value, found: false };
                 }
 
+                // This is the logic to check if which SkillId changed
                 for (let x = 0; x < exisitngSkillId.length; x++) {
                     let found;
                     for (let y = 0; y < newSkillIdtoBeProcessed.length; y++) {
                         found = false;
-                        // do string comparisions and check
+                        // do string comparisions and check since mongodb id is a class
                         const stringExistingSkillString =
                             exisitngSkillId[x].id.toString();
                         const newSkillToString =
@@ -333,12 +336,8 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
                             exisitngSkillId[x].id
                         );
                 }
-
-                console.log('courseIDadded console', courseIdtobeAddedToSkill);
-                console.log('deletId', courseIdtobeDeletedfromSkill);
-                // update the skill database first deletecourseId
-                //////////////////////////////////////////
-                // hence we have to put a chek here this doesnt exist if skill deleted
+                // update the skill database for deletecourseId
+                // again handle edge case what if skillUpdated due to skill delete event being triggered
                 const deleteSkillIdArray = courseIdtobeDeletedfromSkill.map(
                     (skillId) => {
                         return Skills.getSkillById(skillId);
@@ -346,10 +345,6 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
                 );
                 const resolveddeleteSkillDocs = await Promise.all(
                     deleteSkillIdArray
-                );
-                console.log(
-                    'document retrieved to delete',
-                    resolveddeleteSkillDocs
                 );
                 const updateOnlySkillInUse = resolveddeleteSkillDocs.filter(
                     (skill) => {
@@ -411,6 +406,7 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
                     );
                     await Promise.all(publishPromiseAll);
                 }
+
                 // add new courseId to skill database
                 const addSkillIdArray = courseIdtobeAddedToSkill.map(
                     (skillId) => {
@@ -483,7 +479,6 @@ export class CourseDeletedListner extends Listener<courseDeletedEvent> {
     ): Promise<void> {
         try {
             const { _id, skillId, version } = data;
-            console.log('data', data);
             // check we have correct event version and then only update
             const existingVersion = version;
             const parsedCourseId = new ObjectId(_id);
@@ -491,17 +486,20 @@ export class CourseDeletedListner extends Listener<courseDeletedEvent> {
                 parsedCourseId,
                 existingVersion
             );
-            if (!existingVersion) throw new Error('we cant update yet');
+            if (!existingVersion)
+                throw new Error(
+                    'Mismatch between existing version and event version, we cannot process yet'
+                );
             const deleteCourse = await Course.deleteCourseById(parsedCourseId);
             if (!deleteCourse)
                 throw new Error(
-                    'something went wrong and we will reporcess event when sent back to us'
+                    'something went wrong and we will reporcess event when they are sent back to us again'
                 );
 
             // if existingCourse did not have any skillid we can just ackowledge the event
             if (!existingCourse.skillId) msg.ack();
 
-            // check if the deleted course had any skills attahced to it. Go update those skill docs
+            // check if the deleted course had any skills attached to it. Go update those skill docs
             if (existingCourse.skillId) {
                 const parsedSkillArray = existingCourse.skillId.map(
                     (skillId) => {
