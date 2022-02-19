@@ -37,7 +37,7 @@ router.post(
                 version,
                 dbStatus
             });
-            if (!skillDoc) throw new Error('unable to create skill');
+            if (!skillDoc) throw new DatabaseErrors('unable to create skill');
             if (!skillDoc.name || !skillDoc.version)
                 throw new Error(
                     'we need skill name to publish skill:created event'
@@ -215,7 +215,6 @@ router.post(
                 throw new BadRequestError(
                     'please provide id and name to update skill'
                 );
-            // check if a skill already exists with that name thsi functions internally only checks active value
             const dbStatus = databaseStatus.active;
             const existingSkill = await Skills.getSkillByName(name, dbStatus);
             if (existingSkill?.length) {
@@ -225,16 +224,16 @@ router.post(
             }
             const _id = new ObjectId(id);
 
-            // find skill with id get the version number increment version number, update the record, publish the record to nats
             const skill = await Skills.getSkillById(_id);
             if (!skill)
-                throw new Error('cannot find skill with the required id');
+                throw new BadRequestError(
+                    'cannot find skill with the required id'
+                );
             if (!skill.version || !skill.name)
                 throw new Error(
                     'version dbStatus and name are needed to update record'
                 );
             const newVersion = skill.version + 1;
-            // id is used to find the record
             const updateSkill = await Skills.updateSkillName({
                 _id,
                 name,

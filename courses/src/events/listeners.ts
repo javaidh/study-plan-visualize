@@ -1,4 +1,4 @@
-import { Message } from 'node-nats-streaming';
+import { Message, version } from 'node-nats-streaming';
 import { ObjectId } from 'mongodb';
 import {
     Listener,
@@ -182,53 +182,169 @@ export class skillDeletedListener extends Listener<skillDeletedEvent> {
     }
 }
 
-// export class ProgrammingLngCreatedListner extends Listener<programmingLngCreatedEvent> {
-//     readonly subject = Subjects.ProgrammingLanguageCreated;
-//     queueGroupName = 'course-service';
-//     async onMessage(
-//         data: { _id: string; name: string; version: number; dbStatus: string },
-//         msg: Message
-//     ): Promise<void> {
-//         const { _id, name, version } = data;
-//         const convertedId = new ObjectId(_id);
-//         // persist the data in the skills database created in course collection
-//         const programmingLngCreated = await ProgrammingLng.insertProgrammingLng(
-//             {
-//                 _id: convertedId,
-//                 name: name,
-//                 version: version
-//             }
-//         );
-//         msg.ack();
-//     }
-// }
+export class ProgrammingLngCreatedListner extends Listener<programmingLngCreatedEvent> {
+    readonly subject = Subjects.ProgrammingLanguageCreated;
+    queueGroupName = queueGroupName;
+    async onMessage(
+        data: programmingLngCreatedEvent['data'],
+        msg: Message
+    ): Promise<void> {
+        try {
+            const { _id, name, version, course } = data;
+            const convertedId = new ObjectId(_id);
+            // persist the data in the languages database created in course collection
+            const parsedCourseId = course ? new ObjectId(course) : undefined;
 
-// export class ProgrammingLngUpdatedListner extends Listener<programmingLngUpdatedEvent> {
-//     readonly subject = Subjects.ProgrammingLanguageUpdated;
-//     queueGroupName = 'course-service';
-//     async onMessage(
-//         data: { _id: string; name: string; version: number },
-//         msg: Message
-//     ): Promise<void> {
-//         const { _id, name, version } = data;
-//         const convertedId = new ObjectId(_id);
-//         const existingVersion = version - 1;
-//         // persist the data in the skills database created in course collection
-//         // Only process if version is 1 greater then current version in database
-//         const existingProgramming =
-//             await ProgrammingLng.findProgrammingLngByIdAndVersion(
-//                 convertedId,
-//                 existingVersion
-//             );
-//         if (existingProgramming) {
-//             // that means you are processing right event
-//             const programmingUpdated =
-//                 await ProgrammingLng.updateProgrammingLngName({
-//                     _id: convertedId,
-//                     name: name,
-//                     version: version
-//                 });
-//             msg.ack();
-//         }
-//     }
-// }
+            const languageCreated = await ProgrammingLng.insertProgrammingLng({
+                _id: convertedId,
+                name: name,
+                version: version,
+                course: parsedCourseId
+            });
+            msg.ack();
+        } catch (err) {
+            console.log(err);
+        }
+    }
+}
+
+export class ProgrammingLngUpdatedListner extends Listener<programmingLngUpdatedEvent> {
+    readonly subject = Subjects.ProgrammingLanguageUpdated;
+    queueGroupName = queueGroupName;
+    async onMessage(
+        data: programmingLngUpdatedEvent['data'],
+        msg: Message
+    ): Promise<void> {
+        try {
+            const { _id, name, version, course } = data;
+            const convertedId = new ObjectId(_id);
+            const existingVersion = version - 1;
+            // persist the data in the languages database created in course collection
+            // Only process if version is 1 greater then current version in database
+            const existingLanguage =
+                await ProgrammingLng.findProgrammingLngByIdAndVersion(
+                    convertedId,
+                    existingVersion
+                );
+            if (existingLanguage) {
+                // that means you are processing right event
+                const parsedCourseId = course
+                    ? new ObjectId(course)
+                    : undefined;
+
+                const languageUpdated = await ProgrammingLng.updateLanguage({
+                    _id: convertedId,
+                    name: name,
+                    version: version,
+                    course: parsedCourseId
+                });
+                msg.ack();
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    }
+}
+
+export class ProgrammingLngDeletedListener extends Listener<programmingLngDeletedEvent> {
+    readonly subject = Subjects.ProgrammingLanguageDeleted;
+    queueGroupName = queueGroupName;
+
+    async onMessage(
+        data: programmingLngDeletedEvent['data'],
+        msg: Message
+    ): Promise<void> {
+        try {
+            const { _id, version, course } = data;
+
+            // sanity check: check if Language exists in Language database in course service
+            const languageId = new ObjectId(_id);
+            const existingLanguage =
+                await ProgrammingLng.findProgrammingLngByIdAndVersion(
+                    languageId,
+                    version
+                );
+
+            if (!existingLanguage)
+                throw new Error('cannot find Language record with Language id');
+
+            // if LanguageId exists we have to delete it from Language database
+            // regardless of whether this Language was assosciated with course or not
+            const deletedLanguage =
+                await ProgrammingLng.deleteProgrammingLngById(languageId);
+
+            const parsedCourseId = course ? new ObjectId(course) : undefined;
+
+            // If Language was assosciated with a course then we need to update course database to remove that Language Id
+            // If it was not assosciated we will just acknowledge that we have processed the event
+            if (deletedLanguage && parsedCourseId) {
+                // sanity check: check if the supplied courseId is correct
+                const existingCourse = await Course.getCourseById(
+                    parsedCourseId
+                );
+
+                if (!existingCourse.length)
+                    throw new Error('cannot find course with the id supplied');
+
+                // // pull out the course document
+                const courseDoc = existingCourse[0];
+                // // pull out the existing version as now we are updating course database so we need a new version
+                const exisitngCourseVersion = courseDoc.version;
+
+                if (!exisitngCourseVersion)
+                    throw new Error('course version needed to update course');
+
+                const newVersion = exisitngCourseVersion + 1;
+
+                // Update course with newVersion and remove LanguageId at the same time
+                const updated = await Course.updateCourseRemoveLanguageId(
+                    parsedCourseId,
+                    newVersion,
+                    languageId
+                );
+
+                // pull the updated course from the database to publish an event
+                const updatedCourse = await Course.getCourseByIdAndVersion(
+                    parsedCourseId,
+                    newVersion
+                );
+                if (!updatedCourse) throw new Error('unable to update course');
+
+                // publish the event
+                if (
+                    !updatedCourse.name ||
+                    !updatedCourse.version ||
+                    !updatedCourse.courseURL ||
+                    !updatedCourse.learningStatus
+                )
+                    throw new Error(
+                        'we need course, version, database status to publish event'
+                    );
+
+                const skillJSON = updatedCourse.skillId?.map((id) => {
+                    return id.toJSON();
+                });
+
+                const languageJSON = updatedCourse.languageId?.map((id) => {
+                    return id.toJSON();
+                });
+
+                await new CourseUpdatedPublisher(natsWrapper.client).publish({
+                    _id: updatedCourse._id.toString(),
+                    name: updatedCourse.name,
+                    courseURL: updatedCourse.courseURL,
+                    learningStatus: updatedCourse.learningStatus,
+                    version: updatedCourse.version,
+                    skillId: skillJSON,
+                    languageId: languageJSON
+                });
+
+                msg.ack();
+            } else if (deletedLanguage) {
+                msg.ack();
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    }
+}

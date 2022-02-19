@@ -68,11 +68,6 @@ export class Skills {
 
     static async findSkillByIdAndVersion(_id: ObjectId, version: number) {
         try {
-            console.log(
-                'inside find and delete skill in course db',
-                _id,
-                version
-            );
             const db = await connectDb();
             const result: WithId<returnSkillDocument>[] = await db
                 .collection('skills')
@@ -135,7 +130,6 @@ export class Skills {
             const db = await connectDb();
             const { _id, name, version, course } = updateProps;
 
-            // if (skillId && languageId) {
             const result: UpdateResult = await db
                 .collection('skills')
                 .updateOne(
