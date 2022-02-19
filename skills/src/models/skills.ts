@@ -11,12 +11,18 @@ import { connectDb } from '../services/mongodb';
 import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
 
+export enum databaseStatus {
+    active = 'active',
+    inactive = 'inactive'
+}
+
 interface returnSkillDocument {
     _id: ObjectId;
     name?: string;
     course?: ObjectId;
     book?: ObjectId;
     version?: number;
+    dbStatus?: databaseStatus;
 }
 
 interface insertSkillDocument {
@@ -27,6 +33,7 @@ interface insertSkillDocument {
     // we are using version property to keep track of events emitted by this service
     // In other services we have to process events in order to avoid data issues
     version: number;
+    dbStatus?: databaseStatus;
 }
 
 export class Skills {
@@ -128,10 +135,17 @@ export class Skills {
     static async deleteSkillById(_id: ObjectId) {
         try {
             const db = await connectDb();
-            const result: DeleteResult = await db
+            const result = await db
                 .collection('skills')
                 /// when we delete we dont remove database entry we just change the status to inactive
-                .deleteOne({ _id });
+                .updateOne(
+                    { _id },
+                    {
+                        $set: {
+                            dbStatus: databaseStatus.inactive
+                        }
+                    }
+                );
             console.log(result);
             return result.acknowledged;
         } catch (err) {

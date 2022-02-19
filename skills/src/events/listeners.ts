@@ -8,8 +8,8 @@ import {
     courseUpdatedEvent
 } from '@ai-common-modules/events';
 import { Course } from '../models/course';
-import { HostAddress, ObjectId } from 'mongodb';
-import { Skills } from '../models/skills';
+import { ObjectId } from 'mongodb';
+import { databaseStatus, Skills } from '../models/skills';
 import { skillUpdatedPublisher } from './publishers';
 
 const queueGroupName = 'skills-service';
@@ -113,6 +113,9 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
         msg: Message
     ): Promise<void> {
         try {
+            //TODO:
+            // only act on skillId values that are not deleted in database
+            // only check in deletion case
             const { _id, name, courseURL, learningStatus, skillId, version } =
                 data;
             // first find the course with the assosciated id only update if version is correct
@@ -159,56 +162,62 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
                 );
                 const resolvedSkillDoc = await Promise.all(parsedSkillArray);
 
-                // update the skill database
-                const updateSkills = resolvedSkillDoc.map((skill) => {
-                    if (!skill.version || !skill._id)
-                        throw new Error('version not defined');
-                    const newVersion = skill.version + 1;
-                    return Skills.updateSkillByCourse({
-                        _id: skill._id,
-                        version: newVersion,
-                        course: undefined
-                    });
+                // update the skill database if skill is active
+                const activeSkill = resolvedSkillDoc.filter((skill) => {
+                    return skill.dbStatus === databaseStatus.active;
                 });
-                const updatedSkills = await Promise.all(updateSkills);
-
-                // find the updated records in the database to publish event
-                const findUpdatedSkills = resolvedSkillDoc.map((skill) => {
-                    if (!skill.version) throw new Error('version not defined');
-
-                    const newVersion = skill.version + 1;
-
-                    return Skills.findSkillByIdAndVersion(
-                        skill._id,
-                        newVersion
-                    );
-                });
-
-                const resolvedUpdatedSkills = await Promise.all(
-                    findUpdatedSkills
-                );
-                // publish event
-                const publishPromiseAll = resolvedUpdatedSkills.map(
-                    (updatedSkill) => {
-                        if (!updatedSkill.version || !updatedSkill.name)
-                            throw new Error(
-                                'we need skill database doc details to publish this event'
-                            );
-                        const courseToJSON = updatedSkill.course
-                            ? updatedSkill.course.toJSON()
-                            : undefined;
-                        return new skillUpdatedPublisher(
-                            natsWrapper.client
-                        ).publish({
-                            _id: updatedSkill._id.toJSON(),
-                            name: updatedSkill.name,
-                            version: updatedSkill.version,
-                            course: courseToJSON
+                if (activeSkill.length) {
+                    const updateSkills = resolvedSkillDoc.map((skill) => {
+                        if (!skill.version || !skill._id)
+                            throw new Error('version not defined');
+                        const newVersion = skill.version + 1;
+                        return Skills.updateSkillByCourse({
+                            _id: skill._id,
+                            version: newVersion,
+                            course: undefined
                         });
-                    }
-                );
-                await Promise.all(publishPromiseAll);
-                msg.ack();
+                    });
+                    const updatedSkills = await Promise.all(updateSkills);
+
+                    // find the updated records in the database to publish event
+                    const findUpdatedSkills = resolvedSkillDoc.map((skill) => {
+                        if (!skill.version)
+                            throw new Error('version not defined');
+
+                        const newVersion = skill.version + 1;
+
+                        return Skills.findSkillByIdAndVersion(
+                            skill._id,
+                            newVersion
+                        );
+                    });
+
+                    const resolvedUpdatedSkills = await Promise.all(
+                        findUpdatedSkills
+                    );
+                    // publish event
+                    const publishPromiseAll = resolvedUpdatedSkills.map(
+                        (updatedSkill) => {
+                            if (!updatedSkill.version || !updatedSkill.name)
+                                throw new Error(
+                                    'we need skill database doc details to publish this event'
+                                );
+                            const courseToJSON = updatedSkill.course
+                                ? updatedSkill.course.toJSON()
+                                : undefined;
+                            return new skillUpdatedPublisher(
+                                natsWrapper.client
+                            ).publish({
+                                _id: updatedSkill._id.toJSON(),
+                                name: updatedSkill.name,
+                                version: updatedSkill.version,
+                                course: courseToJSON
+                            });
+                        }
+                    );
+                    await Promise.all(publishPromiseAll);
+                    msg.ack();
+                } else msg.ack();
             }
 
             // 3/4 this handles the case when there are new skillId but no old skillId. So this is like a createcourse case
@@ -328,7 +337,8 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
                 console.log('courseIDadded console', courseIdtobeAddedToSkill);
                 console.log('deletId', courseIdtobeDeletedfromSkill);
                 // update the skill database first deletecourseId
-
+                //////////////////////////////////////////
+                // hence we have to put a chek here this doesnt exist if skill deleted
                 const deleteSkillIdArray = courseIdtobeDeletedfromSkill.map(
                     (skillId) => {
                         return Skills.getSkillById(skillId);
@@ -341,59 +351,66 @@ export class CourseUpdatedListner extends Listener<courseUpdatedEvent> {
                     'document retrieved to delete',
                     resolveddeleteSkillDocs
                 );
-                const updateDeleteCourseId = resolveddeleteSkillDocs.map(
+                const updateOnlySkillInUse = resolveddeleteSkillDocs.filter(
                     (skill) => {
-                        if (!skill.version)
-                            throw new Error('version not defined');
-                        const newVersion = skill.version + 1;
-                        return Skills.updateSkillByCourse({
-                            _id: skill._id,
-                            version: newVersion,
-                            course: undefined
-                        });
+                        return skill.dbStatus === databaseStatus.active;
                     }
                 );
+                if (updateOnlySkillInUse.length) {
+                    const updateDeleteCourseId = updateOnlySkillInUse.map(
+                        (skill) => {
+                            if (!skill.version)
+                                throw new Error('version not defined');
+                            const newVersion = skill.version + 1;
+                            return Skills.updateSkillByCourse({
+                                _id: skill._id,
+                                version: newVersion,
+                                course: undefined
+                            });
+                        }
+                    );
 
-                const updatedSkillwithDelete = await Promise.all(
-                    updateDeleteCourseId
-                );
+                    const updatedSkillwithDelete = await Promise.all(
+                        updateDeleteCourseId
+                    );
 
-                const findUpdatedSkills = resolveddeleteSkillDocs.map(
-                    (skill) => {
-                        if (!skill.version)
-                            throw new Error('version not defined');
-                        const newVersion = skill.version + 1;
-                        return Skills.findSkillByIdAndVersion(
-                            skill._id,
-                            newVersion
-                        );
-                    }
-                );
-
-                const resolvedDeletedSkills = await Promise.all(
-                    findUpdatedSkills
-                );
-                // publish event
-                const publishPromiseAll = resolvedDeletedSkills.map(
-                    (updatedSkill) => {
-                        if (!updatedSkill.version || !updatedSkill.name)
-                            throw new Error(
-                                'we need skill database doc details to publish this event'
+                    const findUpdatedSkills = resolveddeleteSkillDocs.map(
+                        (skill) => {
+                            if (!skill.version)
+                                throw new Error('version not defined');
+                            const newVersion = skill.version + 1;
+                            return Skills.findSkillByIdAndVersion(
+                                skill._id,
+                                newVersion
                             );
-                        const courseToJSON = updatedSkill.course
-                            ? updatedSkill.course.toJSON()
-                            : undefined;
-                        return new skillUpdatedPublisher(
-                            natsWrapper.client
-                        ).publish({
-                            _id: updatedSkill._id.toJSON(),
-                            name: updatedSkill.name,
-                            version: updatedSkill.version,
-                            course: courseToJSON
-                        });
-                    }
-                );
-                await Promise.all(publishPromiseAll);
+                        }
+                    );
+
+                    const resolvedDeletedSkills = await Promise.all(
+                        findUpdatedSkills
+                    );
+                    // publish event
+                    const publishPromiseAll = resolvedDeletedSkills.map(
+                        (updatedSkill) => {
+                            if (!updatedSkill.version || !updatedSkill.name)
+                                throw new Error(
+                                    'we need skill database doc details to publish this event'
+                                );
+                            const courseToJSON = updatedSkill.course
+                                ? updatedSkill.course.toJSON()
+                                : undefined;
+                            return new skillUpdatedPublisher(
+                                natsWrapper.client
+                            ).publish({
+                                _id: updatedSkill._id.toJSON(),
+                                name: updatedSkill.name,
+                                version: updatedSkill.version,
+                                course: courseToJSON
+                            });
+                        }
+                    );
+                    await Promise.all(publishPromiseAll);
+                }
                 // add new courseId to skill database
                 const addSkillIdArray = courseIdtobeAddedToSkill.map(
                     (skillId) => {

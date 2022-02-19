@@ -386,7 +386,6 @@ router.post(
                 );
 
             const skillJSON = updatedCourse.skillId?.map((id) => {
-                2;
                 return id.toJSON();
             });
 

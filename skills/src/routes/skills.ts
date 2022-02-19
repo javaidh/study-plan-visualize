@@ -8,7 +8,7 @@ import {
     skillUpdatedPublisher
 } from '../events/publishers';
 import { ReqAnnotateBodyString } from '../types/interfaceRequest';
-import { Skills } from '../models/skills';
+import { databaseStatus, Skills } from '../models/skills';
 import { BadRequestError } from '../errors/badRequestError';
 import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
@@ -32,9 +32,11 @@ router.post(
             }
             // first time default version to 1
             const version = 1;
+            const dbStatus = databaseStatus.active;
             const skillDoc = await Skills.insertSkill({
                 name,
-                version
+                version,
+                dbStatus
             });
             if (!skillDoc) throw new Error('unable to create skill');
             if (!skillDoc.name || !skillDoc.version)
