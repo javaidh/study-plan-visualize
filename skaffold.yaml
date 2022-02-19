@@ -32,3 +32,12 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: .
+    - image: areebaiftikhar/client-study-plan
+      context: client
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        infer:
+          - "**/*.ts"
+          - "**/*.tsx"
+          - "**/*.css"
