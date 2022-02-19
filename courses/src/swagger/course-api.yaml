@@ -1,17 +1,17 @@
 openapi: 3.0.1
 info:
-    title: programming-language-service
-    description: This is a sample programming language microservice
+    title: course-service
+    description: This is a sample course microservice
     version: 1.0.0
 servers:
     - url: localhost
 paths:
-    /api/programming/{id}:
+    /api/course/{id}:
         get:
             tags:
-                - programming
-            summary: get a programming language by id
-            operationId: getProgrammingLanguage
+                - course
+            summary: get a single course by id
+            operationId: getcourse
             parameters:
                 - $ref: '#/components/parameters/id'
             responses:
@@ -24,7 +24,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/ProgrammingLanguageData'
+                                            $ref: '#/components/schemas/CourseData'
                 400:
                     description: unsuccesful operation
                     content:
@@ -36,12 +36,12 @@ paths:
                                         items:
                                             $ref: '#/components/schemas/Errors'
 
-    /api/programming/all:
+    /api/course/all:
         get:
             tags:
-                - programming
-            summary: retrieve all programming language from database
-            operationId: getAllProgrammingLanguage
+                - course
+            summary: retrieve all course from database
+            operationId: getAllCourses
             responses:
                 200:
                     description: successful operation
@@ -52,7 +52,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/ProgrammingLanguageData'
+                                            $ref: '#/components/schemas/CourseData'
 
                 400:
                     description: unsuccesful operation
@@ -64,14 +64,14 @@ paths:
                                         type: array
                                         items:
                                             $ref: '#/components/schemas/Errors'
-    /api/programming/destroy:
+    /api/course/destroy:
         post:
             tags:
-                - programming
-            summary: delete a programming language by id
-            operationId: deleteTask
+                - course
+            summary: delete a course by id
+            operationId: deleteCourse
             requestBody:
-                description: delete programming language from the backend
+                description: delete course from the backend
                 required: true
                 content:
                     application/json:
@@ -99,21 +99,37 @@ paths:
                                         type: array
                                         items:
                                             $ref: '#/components/schemas/Errors'
-    /api/programming/add:
+    /api/course/add:
         post:
             tags:
-                - programming
-            summary: add a programming language
-            operationId: addProgrammingLanguage
+                - course
+            summary: add a course
+            operationId: addCourse
             requestBody:
-                description: add programming language to the backend
+                description: add course to the backend
                 required: true
                 content:
                     application/json:
                         schema:
                             properties:
+                                _id:
+                                    type: string
                                 name:
                                     type: string
+                                courseURL:
+                                    type: string
+                                learningStatus:
+                                    type: number
+                                languages:
+                                    type: array
+                                    nullable: true
+                                    items:
+                                        $ref: '#/components/schemas/LanguageData'
+                                skills:
+                                    type: array
+                                    nullable: true
+                                    items:
+                                        $ref: '#/components/schemas/SkillData'
 
             responses:
                 201:
@@ -125,7 +141,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/ProgrammingLanguageData'
+                                            $ref: '#/components/schemas/CourseData'
 
                 400:
                     description: unsuccesful operation
@@ -137,23 +153,38 @@ paths:
                                         type: array
                                         items:
                                             $ref: '#/components/schemas/Errors'
-    /api/programming/update:
+    /api/course/update:
         post:
             tags:
-                - programming
-            summary: edit a programming language
-            operationId: EditProgrammingLanguage
+                - course
+            summary: edit a course
+            operationId: EditCourse
             requestBody:
-                description: edit programming language data in the backend
+                description: edit course data in the backend
                 required: true
                 content:
                     application/json:
                         schema:
                             properties:
-                                id:
+                                _id:
                                     type: string
                                 name:
                                     type: string
+                                courseURL:
+                                    type: string
+                                learningStatus:
+                                    type: number
+                                languages:
+                                    type: array
+                                    nullable: true
+                                    items:
+                                        $ref: '#/components/schemas/LanguageData'
+                                skills:
+                                    type: array
+                                    nullable: true
+                                    items:
+                                        $ref: '#/components/schemas/SkillData'
+
             responses:
                 201:
                     description: successful operation
@@ -164,7 +195,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/ProgrammingLanguageData'
+                                            $ref: '#/components/schemas/CourseData'
 
                 400:
                     description: unsuccesful operation
@@ -181,7 +212,7 @@ components:
         id:
             name: id
             in: path
-            description: programming language id values that need to be considered for filter
+            description: course Id values that need to be considered for filter
             required: true
             schema:
                 type: string
@@ -194,7 +225,7 @@ components:
                 field:
                     nullable: true
                     type: string
-        ProgrammingLanguageData:
+        CourseData:
             type: object
             properties:
                 _id:
@@ -203,13 +234,20 @@ components:
                     type: string
                 version:
                     type: number
-                dbStatus:
+                courseURL:
                     type: string
-                course:
-                    $ref: '#/components/schemas/Course'
-                books:
-                    $ref: '#/components/schemas/Book'
-        Course:
+                learningStatus:
+                    type: number
+                skillId:
+                    type: array
+                    items:
+                        type: string
+                languageId:
+                    type: array
+                    items:
+                        type: string
+
+        LanguageData:
             type: object
             nullable: true
             properties:
@@ -217,7 +255,8 @@ components:
                     type: string
                 name:
                     type: string
-        Book:
+
+        SkillData:
             type: object
             nullable: true
             properties:
