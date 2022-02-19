@@ -8,8 +8,8 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>this is naother test</p>
-        <p>this is a test</p>
-        <h1>hathan</h1>
+        <p>this is a test funs</p>
+        <h1>hathansss</h1>
         <h1>hathan</h1>
         <h1>hathan</h1>
         <h1>hathan</h1>

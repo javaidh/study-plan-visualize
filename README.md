@@ -1,5 +1,21 @@
 # study-plan-visualize
 
+## Requirements
+
+You need to have
+
+- Docker with Kubernetes enabled
+- Skaffold
+- NGINX Ingress Controller [https://kubernetes.github.io/ingress-nginx/]
+
+## First Time Setup
+
+Make sure to run the following command for NGINX Ingress Preflight checks:
+
+``kubectl get pods --namespace=ingress-nginx``
+
+## Running Development ENV
+
 run ``skaffold dev`` to run Development Environment.
 
 The Client should be running on localhost, and your backend services should be running in kubernetes
@@ -16,4 +32,4 @@ These are the services that are current operational (Will be updated per PR)
 
 - programming-lng-services
 - courses
-- skills
+- skills**
