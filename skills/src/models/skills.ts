@@ -163,7 +163,6 @@ export class Skills {
         try {
             const db = await connectDb();
             const { _id, version, course } = updateProps;
-            console.log('update props inisde updateSkillcourse', updateProps);
             const result: UpdateResult = await db
                 .collection('skills')
                 .updateOne(

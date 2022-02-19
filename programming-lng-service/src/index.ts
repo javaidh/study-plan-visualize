@@ -12,6 +12,11 @@ import { connectDb } from './services/mongodb';
 import { programmingLngRouter } from './routes/programmingLng';
 import { errorHandler } from './middlewares/errorHandler';
 import swaggerDocument from './swagger/programming-api.json';
+import {
+    CourseCreatedListner,
+    CourseUpdatedListner,
+    CourseDeletedListner
+} from './events/listeners';
 
 const PORT = process.env.PORT || 5000;
 
@@ -44,6 +49,12 @@ const startServer = async () => {
 
         process.on('SIGINT', () => natsWrapper.client.close());
         process.on('SIGTERM', () => natsWrapper.client.close());
+
+        // listen for events
+        new CourseCreatedListner(natsWrapper.client).listen();
+        new CourseUpdatedListner(natsWrapper.client).listen();
+        new CourseDeletedListner(natsWrapper.client).listen();
+
         // connect to db
         await connectDb();
 

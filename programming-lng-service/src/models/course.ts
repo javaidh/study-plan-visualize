@@ -7,16 +7,14 @@ import {
 } from 'mongodb';
 
 import { connectDb } from '../services/mongodb';
-// TODO: convert them into one import
 import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
 
 interface returnCourseDocument {
-    _id?: ObjectId;
+    _id: ObjectId;
     name?: string;
     courseURL?: string;
     learningStatus?: number;
-    skillId?: ObjectId[];
     languageId?: ObjectId[];
     version?: number;
 }
@@ -26,7 +24,6 @@ interface insertCourseDocument {
     name: string;
     courseURL: string;
     learningStatus: number;
-    skillId?: ObjectId[];
     languageId?: ObjectId[];
     version: number;
 }
@@ -55,51 +52,14 @@ export class Course {
             const db = await connectDb();
             const result: WithId<returnCourseDocument>[] = await db
                 .collection('course')
-                // you only want to return user password in case you are doing a password check
                 .find({ _id })
                 .toArray();
-            if (!result)
+            if (!result.length)
                 throw new DatabaseErrors(
                     'Unable to retrieve course from database'
                 );
-            return result;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors('Unable to retrieve course from database');
-        }
-    }
-
-    static async getCourseByName(name: string) {
-        try {
-            const db = await connectDb();
-            const result: WithId<returnCourseDocument>[] = await db
-                .collection('course')
-                .find({ name })
-                .toArray();
-            if (!result)
-                throw new DatabaseErrors(
-                    'Unable to retrieve course from database'
-                );
-            return result;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors('Unable to retrieve course from database');
-        }
-    }
-
-    static async getAllCourse() {
-        try {
-            const db = await connectDb();
-            const result: WithId<returnCourseDocument>[] = await db
-                .collection('course')
-                // you only want to return documents that are active in database
-                .find({})
-                .toArray();
-            if (!result)
-                throw new DatabaseErrors(
-                    'Unable to retrieve course from database'
-                );
-            return result;
+            const document = result[0];
+            return document;
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors('Unable to retrieve course from database');
@@ -121,35 +81,12 @@ export class Course {
         }
     }
 
-    static async getCourseByIdAndName(_id: ObjectId, name: string) {
-        try {
-            const db = await connectDb();
-            const result: WithId<returnCourseDocument>[] = await db
-                .collection('course')
-                // you only want to return user password in case you are doing a password check
-                .find({ $and: [{ _id: _id }, { name: name }] })
-                .toArray();
-            if (!result.length)
-                throw new DatabaseErrors(
-                    'Unable to retrieve programming language from database'
-                );
-            const document = result[0];
-            return document;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'Unable to retrieve programming language from database'
-            );
-        }
-    }
-
     static async updateCourse(updateProps: {
         _id: ObjectId;
         name: string;
         courseURL: string;
         learningStatus: number;
         version: number;
-        skillId?: ObjectId[] | undefined;
         languageId?: ObjectId[] | undefined;
     }) {
         try {
@@ -160,7 +97,6 @@ export class Course {
                 courseURL,
                 learningStatus,
                 version,
-                skillId,
                 languageId
             } = updateProps;
 
@@ -174,7 +110,6 @@ export class Course {
                             courseURL: courseURL,
                             learningStatus: learningStatus,
                             version: version,
-                            skillId: skillId,
                             languageId: languageId
                         }
                     }
@@ -195,7 +130,7 @@ export class Course {
                 .toArray();
             if (!result.length)
                 throw new DatabaseErrors(
-                    'Unable to retrieve skill from database'
+                    'Unable to retrieve language from database'
                 );
             const document = result[0];
             return document;
@@ -203,47 +138,6 @@ export class Course {
             logErrorMessage(err);
             throw new DatabaseErrors(
                 'No such document exist with id and version'
-            );
-        }
-    }
-
-    static async updateCourseRemoveSkillId(
-        _id: ObjectId,
-        version: number,
-        skillId: ObjectId
-    ) {
-        try {
-            const db = await connectDb();
-            const result: UpdateResult = await db
-                .collection('course')
-                .updateOne({ _id }, { $pull: { skillId }, $set: { version } });
-            return result.modifiedCount === 1;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'failed to remove skillId from course, hence, update course failed'
-            );
-        }
-    }
-
-    static async updateCourseRemoveLanguageId(
-        _id: ObjectId,
-        version: number,
-        languageId: ObjectId
-    ) {
-        try {
-            const db = await connectDb();
-            const result: UpdateResult = await db
-                .collection('course')
-                .updateOne(
-                    { _id },
-                    { $pull: { languageId }, $set: { version } }
-                );
-            return result.modifiedCount === 1;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'failed to remove languageId from course, hence, update course failed'
             );
         }
     }
