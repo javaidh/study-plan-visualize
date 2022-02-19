@@ -11,7 +11,7 @@ build:
     - image: areebaiftikhar/skill
       context: skills
       docker:
-        dockerfile: Dockerfile
+        dockerfile: Dockerfile.dev
       sync:
         manual:
           - src: "src/**/*.ts"
@@ -19,7 +19,7 @@ build:
     - image: areebaiftikhar/programming
       context: programming-lng-service
       docker:
-        dockerfile: Dockerfile
+        dockerfile: Dockerfile.dev
       sync:
         manual:
           - src: "src/**/*.ts"
@@ -27,7 +27,15 @@ build:
     - image: areebaiftikhar/course
       context: courses
       docker:
-        dockerfile: Dockerfile
+        dockerfile: Dockerfile.dev
+      sync:
+        manual:
+          - src: "src/**/*.ts"
+            dest: .
+    - image: areebaiftikhar/book
+      context: courses
+      docker:
+        dockerfile: Dockerfile.dev
       sync:
         manual:
           - src: "src/**/*.ts"
@@ -35,7 +43,7 @@ build:
     - image: areebaiftikhar/client-study-plan
       context: client
       docker:
-        dockerfile: Dockerfile
+        dockerfile: Dockerfile.dev
       sync:
         infer:
           - "**/*.ts"

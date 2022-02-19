@@ -7,11 +7,21 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import 'dotenv/config.js';
 
 // inside module imports
+import { natsWrapper } from '../nats-wrapper';
+import {
+    SkillCreatedListner,
+    SkillUpdatedListner,
+    skillDeletedListener,
+    ProgrammingLngCreatedListner,
+    ProgrammingLngUpdatedListner,
+    ProgrammingLngDeletedListener
+} from './events/listeners';
 import { connectDb } from './services/mongodb';
 import { booksRouter } from './routes/books';
 import { errorHandler } from './middlewares/errorHandler';
+import swaggerDocument from './swagger/book-api.json';
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 7000;
 
 const startServer = async () => {
     try {
@@ -19,8 +29,38 @@ const startServer = async () => {
         app.set('trust proxy', true);
 
         // check if environment variable exists
-        if (!process.env.MONGO_DB_CONNECTION_STRING)
+        if (
+            !process.env.MONGO_DB_CONNECTION_STRING ||
+            !process.env.NATS_URL ||
+            !process.env.NATS_CLUSTER_ID ||
+            !process.env.NATS_CLIENT_ID
+        )
             throw new Error('environment variable not defined');
+        console.log(process.env.NATS_CLIENT_ID);
+
+        // connect to nats
+        // the second argument clientId needs to be unique for every copy of this service you spinup in kubernetes
+        await natsWrapper.connect(
+            process.env.NATS_CLUSTER_ID,
+            process.env.NATS_CLIENT_ID,
+            process.env.NATS_URL
+        );
+        // gracefully shutdown nats if nats try to close
+        natsWrapper.client.on('close', () => {
+            console.log('nats connection closed');
+            process.exit();
+        });
+
+        process.on('SIGINT', () => natsWrapper.client.close());
+        process.on('SIGTERM', () => natsWrapper.client.close());
+
+        // listen for events from other services
+        new SkillCreatedListner(natsWrapper.client).listen();
+        new SkillUpdatedListner(natsWrapper.client).listen();
+        new skillDeletedListener(natsWrapper.client).listen();
+        new ProgrammingLngCreatedListner(natsWrapper.client).listen();
+        new ProgrammingLngUpdatedListner(natsWrapper.client).listen();
+        new ProgrammingLngDeletedListener(natsWrapper.client).listen();
 
         // connect to db
         await connectDb();
@@ -29,11 +69,11 @@ const startServer = async () => {
         app.use(bodyParser.json());
 
         // api-documentation
-        //  app.use(
-        //     '/api/todo/task-docs',
-        //     swaggerUi.serve,
-        //     swaggerUi.setup(swaggerDocument)
-        // );
+        app.use(
+            '/api/course/book-docs',
+            swaggerUi.serve,
+            swaggerUi.setup(swaggerDocument)
+        );
         app.use(booksRouter);
 
         // error-handler
@@ -41,7 +81,7 @@ const startServer = async () => {
 
         //listen on port
         app.listen(PORT, () => {
-            console.log(`books service running on ${PORT}`);
+            console.log(`book service running on ${PORT}`);
         });
     } catch (err) {
         console.log(err);

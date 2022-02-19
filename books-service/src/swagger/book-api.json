@@ -1,0 +1,406 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "course-service",
+        "description": "This is a sample course microservice",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "localhost"
+        }
+    ],
+    "paths": {
+        "/api/course/{id}": {
+            "get": {
+                "tags": ["course"],
+                "summary": "get a single course by id",
+                "operationId": "getcourse",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/id"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CourseData"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "unsuccesful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Errors"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/course/all": {
+            "get": {
+                "tags": ["course"],
+                "summary": "retrieve all course from database",
+                "operationId": "getAllCourses",
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CourseData"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "unsuccesful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Errors"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/course/destroy": {
+            "post": {
+                "tags": ["course"],
+                "summary": "delete a course by id",
+                "operationId": "deleteCourse",
+                "requestBody": {
+                    "description": "delete course from the backend",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "unsuccesful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Errors"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/course/add": {
+            "post": {
+                "tags": ["course"],
+                "summary": "add a course",
+                "operationId": "addCourse",
+                "requestBody": {
+                    "description": "add course to the backend",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "_id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "courseURL": {
+                                        "type": "string"
+                                    },
+                                    "learningStatus": {
+                                        "type": "number"
+                                    },
+                                    "languages": {
+                                        "type": "array",
+                                        "nullable": true,
+                                        "items": {
+                                            "$ref": "#/components/schemas/LanguageData"
+                                        }
+                                    },
+                                    "skills": {
+                                        "type": "array",
+                                        "nullable": true,
+                                        "items": {
+                                            "$ref": "#/components/schemas/SkillData"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CourseData"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "unsuccesful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Errors"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/course/update": {
+            "post": {
+                "tags": ["course"],
+                "summary": "edit a course",
+                "operationId": "EditCourse",
+                "requestBody": {
+                    "description": "edit course data in the backend",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "_id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "courseURL": {
+                                        "type": "string"
+                                    },
+                                    "learningStatus": {
+                                        "type": "number"
+                                    },
+                                    "languages": {
+                                        "type": "array",
+                                        "nullable": true,
+                                        "items": {
+                                            "$ref": "#/components/schemas/LanguageData"
+                                        }
+                                    },
+                                    "skills": {
+                                        "type": "array",
+                                        "nullable": true,
+                                        "items": {
+                                            "$ref": "#/components/schemas/SkillData"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CourseData"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "unsuccesful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Errors"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "parameters": {
+            "id": {
+                "name": "id",
+                "in": "path",
+                "description": "course Id values that need to be considered for filter",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            }
+        },
+        "schemas": {
+            "Errors": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "field": {
+                        "nullable": true,
+                        "type": "string"
+                    }
+                }
+            },
+            "CourseData": {
+                "type": "object",
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "number"
+                    },
+                    "courseURL": {
+                        "type": "string"
+                    },
+                    "learningStatus": {
+                        "type": "number"
+                    },
+                    "skillId": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "languageId": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "LanguageData": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SkillData": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}
