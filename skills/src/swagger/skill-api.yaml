@@ -210,18 +210,9 @@ components:
                 books:
                     $ref: '#/components/schemas/Book'
         Course:
-            type: object
+            type: string
             nullable: true
-            properties:
-                _id:
-                    type: string
-                name:
-                    type: string
+
         Book:
-            type: object
+            type: string
             nullable: true
-            properties:
-                _id:
-                    type: string
-                name:
-                    type: string

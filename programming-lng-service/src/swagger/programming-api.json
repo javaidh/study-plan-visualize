@@ -326,28 +326,12 @@
                 }
             },
             "Course": {
-                "type": "object",
-                "nullable": true,
-                "properties": {
-                    "_id": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                }
+                "type": "string",
+                "nullable": true
             },
             "Book": {
-                "type": "object",
-                "nullable": true,
-                "properties": {
-                    "_id": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                }
+                "type": "string",
+                "nullable": true
             }
         }
     }
