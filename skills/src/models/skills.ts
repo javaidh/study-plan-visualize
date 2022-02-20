@@ -180,7 +180,33 @@ export class Skills {
             throw new DatabaseErrors('Unable to retrieve skill from database');
         }
     }
-    // we dont need to increment version in database
+
+    static async updateSkillByBook(updateProps: {
+        _id: ObjectId;
+        version: number;
+        book: ObjectId | undefined;
+    }) {
+        try {
+            const db = await connectDb();
+            const { _id, version, book } = updateProps;
+            const result: UpdateResult = await db
+                .collection('skills')
+                .updateOne(
+                    { _id },
+                    {
+                        $set: {
+                            version: version,
+                            book: book
+                        }
+                    }
+                );
+            return result.acknowledged;
+        } catch (err) {
+            logErrorMessage(err);
+            throw new DatabaseErrors('Unable to retrieve skill from database');
+        }
+    }
+
     static async updateSkillName(updateProps: {
         _id: ObjectId;
         name: string;

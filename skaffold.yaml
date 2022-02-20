@@ -33,19 +33,19 @@ build:
           - src: "src/**/*.ts"
             dest: .
     - image: areebaiftikhar/book
-      context: courses
+      context: books-service
       docker:
         dockerfile: Dockerfile.dev
       sync:
         manual:
           - src: "src/**/*.ts"
             dest: .
-    - image: areebaiftikhar/client-study-plan
-      context: client
-      docker:
-        dockerfile: Dockerfile.dev
-      sync:
-        infer:
-          - "**/*.ts"
-          - "**/*.tsx"
-          - "**/*.css"
+    # - image: areebaiftikhar/client-study-plan
+    #   context: client
+    #   docker:
+    #     dockerfile: Dockerfile.dev
+    #   sync:
+    #     infer:
+    #       - "**/*.ts"
+    #       - "**/*.tsx"
+    #       - "**/*.css"

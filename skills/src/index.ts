@@ -14,7 +14,10 @@ import { errorHandler } from './middlewares/errorHandler';
 import {
     CourseCreatedListner,
     CourseUpdatedListner,
-    CourseDeletedListner
+    CourseDeletedListner,
+    BookCreatedListner,
+    BookDeletedListner,
+    BookUpdatedListner
 } from './events/listeners';
 import swaggerDocument from './swagger/skill-api.json';
 
@@ -54,13 +57,15 @@ const startServer = async () => {
         new CourseCreatedListner(natsWrapper.client).listen();
         new CourseUpdatedListner(natsWrapper.client).listen();
         new CourseDeletedListner(natsWrapper.client).listen();
+        new BookCreatedListner(natsWrapper.client).listen();
+        new BookUpdatedListner(natsWrapper.client).listen();
+        new BookDeletedListner(natsWrapper.client).listen();
         // connect to db
         await connectDb();
 
         //middleware
         app.use(bodyParser.json());
 
-        // TODO: update JSON file
         //api-documentation
         app.use(
             '/api/skills/skill-docs',

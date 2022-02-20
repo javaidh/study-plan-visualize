@@ -15,7 +15,10 @@ import swaggerDocument from './swagger/programming-api.json';
 import {
     CourseCreatedListner,
     CourseUpdatedListner,
-    CourseDeletedListner
+    CourseDeletedListner,
+    BookCreatedListner,
+    BookDeletedListner,
+    BookUpdatedListner
 } from './events/listeners';
 
 const PORT = process.env.PORT || 5000;
@@ -54,6 +57,9 @@ const startServer = async () => {
         new CourseCreatedListner(natsWrapper.client).listen();
         new CourseUpdatedListner(natsWrapper.client).listen();
         new CourseDeletedListner(natsWrapper.client).listen();
+        new BookCreatedListner(natsWrapper.client).listen();
+        new BookUpdatedListner(natsWrapper.client).listen();
+        new BookDeletedListner(natsWrapper.client).listen();
 
         // connect to db
         await connectDb();

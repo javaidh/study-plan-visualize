@@ -7,7 +7,6 @@ import {
 } from 'mongodb';
 
 import { connectDb } from '../services/mongodb';
-
 import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
 
@@ -18,7 +17,6 @@ interface returnBookDocument {
     bookVersion?: number;
     learningStatus?: number;
     skillId?: ObjectId[];
-    languageId?: ObjectId[];
     version?: number;
 }
 
@@ -29,7 +27,6 @@ interface insertBookDocument {
     bookVersion?: number;
     learningStatus: number;
     skillId?: ObjectId[];
-    languageId?: ObjectId[];
     version: number;
 }
 
@@ -41,7 +38,7 @@ export class Book {
                 .collection('book')
                 .insertOne(BookProps);
             if (!acknowledged)
-                throw new DatabaseErrors('unable to insert Book ');
+                throw new DatabaseErrors('unable to insert book ');
             const bookCreated = await Book.getBookById(insertedId);
             return bookCreated;
         } catch (err) {
@@ -57,51 +54,14 @@ export class Book {
             const db = await connectDb();
             const result: WithId<returnBookDocument>[] = await db
                 .collection('book')
-                // you only want to return user password in case you are doing a password check
                 .find({ _id })
                 .toArray();
-            if (!result)
+            if (!result.length)
                 throw new DatabaseErrors(
                     'Unable to retrieve book from database'
                 );
-            return result;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors('Unable to retrieve book from database');
-        }
-    }
-
-    static async getBookByName(name: string) {
-        try {
-            const db = await connectDb();
-            const result: WithId<returnBookDocument>[] = await db
-                .collection('book')
-                .find({ name })
-                .toArray();
-            if (!result)
-                throw new DatabaseErrors(
-                    'Unable to retrieve book from database'
-                );
-            return result;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors('Unable to retrieve book from database');
-        }
-    }
-
-    static async getAllBook() {
-        try {
-            const db = await connectDb();
-            const result: WithId<returnBookDocument>[] = await db
-                .collection('book')
-                // you only want to return documents that are active in database
-                .find({})
-                .toArray();
-            if (!result)
-                throw new DatabaseErrors(
-                    'Unable to retrieve book from database'
-                );
-            return result;
+            const document = result[0];
+            return document;
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors('Unable to retrieve book from database');
@@ -123,28 +83,6 @@ export class Book {
         }
     }
 
-    static async getBookByIdAndName(_id: ObjectId, name: string) {
-        try {
-            const db = await connectDb();
-            const result: WithId<returnBookDocument>[] = await db
-                .collection('book')
-                // you only want to return user password in case you are doing a password check
-                .find({ $and: [{ _id: _id }, { name: name }] })
-                .toArray();
-            if (!result.length)
-                throw new DatabaseErrors(
-                    'Unable to retrieve programming language from database'
-                );
-            const document = result[0];
-            return document;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'Unable to retrieve programming language from database'
-            );
-        }
-    }
-
     static async updateBook(updateProps: {
         _id: ObjectId;
         name: string;
@@ -153,7 +91,6 @@ export class Book {
         learningStatus: number;
         version: number;
         skillId?: ObjectId[] | undefined;
-        languageId?: ObjectId[] | undefined;
     }) {
         try {
             const db = await connectDb();
@@ -164,8 +101,7 @@ export class Book {
                 bookVersion,
                 learningStatus,
                 version,
-                skillId,
-                languageId
+                skillId
             } = updateProps;
 
             const result: UpdateResult = await db.collection('book').updateOne(
@@ -173,12 +109,11 @@ export class Book {
                 {
                     $set: {
                         name: name,
-                        bookAuthor: bookAuthor,
                         bookVersion: bookVersion,
+                        bookAuthor: bookAuthor,
                         learningStatus: learningStatus,
                         version: version,
-                        skillId: skillId,
-                        languageId: languageId
+                        skillId: skillId
                     }
                 }
             );
@@ -206,47 +141,6 @@ export class Book {
             logErrorMessage(err);
             throw new DatabaseErrors(
                 'No such document exist with id and version'
-            );
-        }
-    }
-
-    static async updateBookRemoveSkillId(
-        _id: ObjectId,
-        version: number,
-        skillId: ObjectId
-    ) {
-        try {
-            const db = await connectDb();
-            const result: UpdateResult = await db
-                .collection('book')
-                .updateOne({ _id }, { $pull: { skillId }, $set: { version } });
-            return result.modifiedCount === 1;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'failed to remove skillId from Book, hence, update Book failed'
-            );
-        }
-    }
-
-    static async updateBookRemoveLanguageId(
-        _id: ObjectId,
-        version: number,
-        languageId: ObjectId
-    ) {
-        try {
-            const db = await connectDb();
-            const result: UpdateResult = await db
-                .collection('book')
-                .updateOne(
-                    { _id },
-                    { $pull: { languageId }, $set: { version } }
-                );
-            return result.modifiedCount === 1;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'failed to remove languageId from book, hence, update book failed'
             );
         }
     }
