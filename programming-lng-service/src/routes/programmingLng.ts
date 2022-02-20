@@ -9,11 +9,59 @@ import {
 } from '../events/publishers';
 import { ReqAnnotateBodyString } from '../types/interfaceRequest';
 import { ProgrammingLng, databaseStatus } from '../models/programmingLng';
+import { Course } from '../models/course';
+import { Book } from '../models/book';
 import { BadRequestError } from '../errors/badRequestError';
 import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
 
 const router = express.Router();
+
+router.post(
+    '/api/programming/learning',
+    async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {
+        try {
+            const { id, name } = req.body;
+            if (!id || !name)
+                throw new BadRequestError(
+                    'please provide id and name for language'
+                );
+            const _id = new ObjectId(id);
+            const language = await ProgrammingLng.getProgrammingLngById(_id);
+            if (!language)
+                throw new BadRequestError(
+                    'cannot find language with the required id'
+                );
+            const { course, book } = language;
+            let courseStatus = 0;
+            let bookStatus = 0;
+            if (course) {
+                const courseDocument = await Course.getCourseById(course);
+                const { learningStatus } = courseDocument;
+                courseStatus = learningStatus ? learningStatus : 0;
+            }
+            if (book) {
+                const bookDocument = await Book.getBookById(book);
+                const { learningStatus } = bookDocument;
+                bookStatus = learningStatus ? learningStatus : 0;
+            }
+            let result: number;
+            if (courseStatus && bookStatus) {
+                result = courseStatus * 0.5 + bookStatus * 0.5;
+            } else if (courseStatus && !bookStatus) {
+                result = courseStatus;
+            } else if (bookStatus && !courseStatus) {
+                result = bookStatus;
+            } else {
+                result = 0;
+            }
+            res.status(200).send({ data: result });
+        } catch (err) {
+            logErrorMessage(err);
+            next(err);
+        }
+    }
+);
 
 // create
 router.post(
@@ -27,7 +75,7 @@ router.post(
                     'please provide name for programming language'
                 );
             const dbStatus = databaseStatus.active;
-            // check if active entries in the db already have skill with this name
+            // check if active entries in the db already have language with this name
             const existingLanguage = await ProgrammingLng.getLanguageByName(
                 name,
                 dbStatus
@@ -73,7 +121,7 @@ router.post(
     }
 );
 
-// get all skills
+// get all languages
 router.get(
     '/api/programming/all',
     async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {
@@ -156,73 +204,6 @@ router.post(
         }
     }
 );
-
-// update skills
-// TODO: this update logic will happen when event recieved so this is not a route
-// router.post(
-//     '/api/programming/updateEvent',
-//     async (req: ReqAnnotateBodyString, res: Response, next: NextFunction) => {
-//         try {
-//             let { id, courseId, bookId } = req.body;
-//             if (!id)
-//                 throw new BadRequestError(
-//                     'please provide id to update programming language'
-//                 );
-//             //sanitize id
-//             const _id = new ObjectId(id);
-//             const course = courseId ? new ObjectId(courseId) : undefined;
-//             const book = bookId ? new ObjectId(bookId) : undefined;
-
-//             const programmingArray = await ProgrammingLng.getProgrammingLngById(
-//                 _id
-//             );
-//             if (!programmingArray?.length)
-//                 throw new Error('cannot find programming with the required id');
-//             const language = programmingArray[0];
-//             if (!language.version || !language.name)
-//                 throw new Error(
-//                     'version dbStatus and name are needed to update record'
-//                 );
-//             const newVersion = language.version + 1;
-
-//             const updateProgrammingLng =
-//                 await ProgrammingLng.updateProgrammingLng({
-//                     _id,
-//                     version: newVersion,
-//                     course,
-//                     book
-//                 });
-
-//             if (!updateProgrammingLng)
-//                 throw new DatabaseErrors('unable to update fields');
-//             // find updated skill to publish event and send to front -end
-//             const updatedLanguage =
-//                 await ProgrammingLng.findProgrammingLngByIdAndVersion(
-//                     _id,
-//                     newVersion
-//                 );
-
-//             if (updatedLanguage) {
-//                 const LanguageDoc = updatedLanguage[0];
-//                 if (!LanguageDoc.version || !LanguageDoc.name)
-//                     throw new Error(
-//                         'we need skill database doc details to publish this event'
-//                     );
-//                 await new programmingLngUpdatedPublisher(
-//                     natsWrapper.client
-//                 ).publish({
-//                     _id: LanguageDoc._id.toString(),
-//                     name: LanguageDoc.name,
-//                     version: LanguageDoc.version
-//                 });
-//             }
-//             res.status(201).send({ data: updatedLanguage });
-//         } catch (err) {
-//             logErrorMessage(err);
-//             next(err);
-//         }
-//     }
-// );
 
 router.post(
     '/api/programming/update',
