@@ -196,6 +196,32 @@ export class ProgrammingLng {
         }
     }
 
+    static async updateProgrammingLngByBook(updateProps: {
+        _id: ObjectId;
+        version: number;
+        book: ObjectId | undefined;
+    }) {
+        try {
+            const db = await connectDb();
+            const { _id, version, book } = updateProps;
+            const result: UpdateResult = await db
+                .collection('programming')
+                .updateOne(
+                    { _id },
+                    {
+                        $set: {
+                            version: version,
+                            book: book
+                        }
+                    }
+                );
+            return result.acknowledged;
+        } catch (err) {
+            logErrorMessage(err);
+            throw new DatabaseErrors('Unable to retrieve skill from database');
+        }
+    }
+
     static async updateProgrammingLngName(updateProps: {
         _id: ObjectId;
         name: string;

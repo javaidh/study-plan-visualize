@@ -1,17 +1,17 @@
 openapi: 3.0.1
 info:
-    title: course-service
-    description: This is a sample course microservice
+    title: book-service
+    description: This is a sample book microservice
     version: 1.0.0
 servers:
     - url: localhost
 paths:
-    /api/course/{id}:
+    /api/book/{id}:
         get:
             tags:
-                - course
-            summary: get a single course by id
-            operationId: getcourse
+                - book
+            summary: get a single book by id
+            operationId: getbook
             parameters:
                 - $ref: '#/components/parameters/id'
             responses:
@@ -24,7 +24,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/CourseData'
+                                            $ref: '#/components/schemas/BookData'
                 400:
                     description: unsuccesful operation
                     content:
@@ -36,12 +36,12 @@ paths:
                                         items:
                                             $ref: '#/components/schemas/Errors'
 
-    /api/course/all:
+    /api/book/all:
         get:
             tags:
-                - course
-            summary: retrieve all course from database
-            operationId: getAllCourses
+                - book
+            summary: retrieve all book from database
+            operationId: getAllbooks
             responses:
                 200:
                     description: successful operation
@@ -52,7 +52,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/CourseData'
+                                            $ref: '#/components/schemas/BookData'
 
                 400:
                     description: unsuccesful operation
@@ -64,14 +64,14 @@ paths:
                                         type: array
                                         items:
                                             $ref: '#/components/schemas/Errors'
-    /api/course/destroy:
+    /api/book/destroy:
         post:
             tags:
-                - course
-            summary: delete a course by id
-            operationId: deleteCourse
+                - book
+            summary: delete a book by id
+            operationId: deletebook
             requestBody:
-                description: delete course from the backend
+                description: delete book from the backend
                 required: true
                 content:
                     application/json:
@@ -99,14 +99,14 @@ paths:
                                         type: array
                                         items:
                                             $ref: '#/components/schemas/Errors'
-    /api/course/add:
+    /api/book/add:
         post:
             tags:
-                - course
-            summary: add a course
-            operationId: addCourse
+                - book
+            summary: add a book
+            operationId: addbook
             requestBody:
-                description: add course to the backend
+                description: add book to the backend
                 required: true
                 content:
                     application/json:
@@ -116,8 +116,12 @@ paths:
                                     type: string
                                 name:
                                     type: string
-                                courseURL:
+                                bookAuthor:
+                                    nullable: true
                                     type: string
+                                bookVersion:
+                                    nullable: true
+                                    type: number
                                 learningStatus:
                                     type: number
                                 languages:
@@ -141,7 +145,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/CourseData'
+                                            $ref: '#/components/schemas/BookData'
 
                 400:
                     description: unsuccesful operation
@@ -153,7 +157,7 @@ paths:
                                         type: array
                                         items:
                                             $ref: '#/components/schemas/Errors'
-    /api/course/update:
+    /api/book/update:
         post:
             tags:
                 - course
@@ -170,8 +174,12 @@ paths:
                                     type: string
                                 name:
                                     type: string
-                                courseURL:
+                                bookAuthor:
+                                    nullable: true
                                     type: string
+                                bookVersion:
+                                    nullable: true
+                                    type: number
                                 learningStatus:
                                     type: number
                                 languages:
@@ -195,7 +203,7 @@ paths:
                                     data:
                                         type: array
                                         items:
-                                            $ref: '#/components/schemas/CourseData'
+                                            $ref: '#/components/schemas/BookData'
 
                 400:
                     description: unsuccesful operation
@@ -225,7 +233,7 @@ components:
                 field:
                     nullable: true
                     type: string
-        CourseData:
+        BookData:
             type: object
             properties:
                 _id:
@@ -234,8 +242,12 @@ components:
                     type: string
                 version:
                     type: number
-                courseURL:
+                bookAuthor:
                     type: string
+                    nullable: true
+                bookVersion:
+                    type: number
+                    nullable: true
                 learningStatus:
                     type: number
                 skillId:

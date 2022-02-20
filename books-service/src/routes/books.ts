@@ -36,15 +36,9 @@ router.post(
                 throw new BadRequestError(
                     'learnning status must be between 0 and 100'
                 );
-
-            // check if bookName already exists in database
-            const existingDoc = await Book.getBookByName(bookName);
-            if (existingDoc.length)
-                throw new DatabaseErrors('book name already in use');
             const version = 1;
             let skillId: ObjectId[] | undefined;
             let languageId: ObjectId[] | undefined;
-
             //check if skillId and name supplied by user exist in database
             if (skills) {
                 const promiseSkillArray = skills.map((skill) => {
@@ -53,6 +47,14 @@ router.post(
                 });
 
                 const allSkills = await Promise.all(promiseSkillArray);
+                // we can only tie one skil or language to one book but one book can be tied to multiple skills or languages
+                // so do a check for the before adding in database
+                const checkInvalidRelationship = allSkills.map((skill) => {
+                    if (skill.book)
+                        throw new BadRequestError(
+                            'this skill is already tied to a book'
+                        );
+                });
 
                 // map and only keep ids to store in cpurse database
                 skillId = allSkills.map((skill) => {
@@ -71,11 +73,21 @@ router.post(
 
                 const allLanguages = await Promise.all(promiselanguageArray);
 
+                const checkInvalidRelationship = allLanguages.map(
+                    (language) => {
+                        if (language.book)
+                            throw new BadRequestError(
+                                'this language is already tied to a different book'
+                            );
+                    }
+                );
+
                 // map and only keep ids to store in cpurse database
                 languageId = allLanguages.map((language) => {
                     return language._id;
                 });
             }
+
             const documentCreated = await Book.insertBook({
                 name: bookName,
                 bookAuthor,
@@ -106,6 +118,7 @@ router.post(
             const languageJSON = document.languageId?.map((id) => {
                 return id.toJSON();
             });
+            console.log('before publishing event');
             await new BookCreatedPublisher(natsWrapper.client).publish({
                 _id: document._id.toString(),
                 name: document.name,
@@ -234,7 +247,7 @@ router.post(
                 languages,
                 learningStatus
             } = req.body;
-            if (!bookName || !bookAuthor || !learningStatus || !bookId)
+            if (!bookName || !learningStatus || !bookId)
                 throw new BadRequestError(
                     'please provide course name url, courseId and learning status and courseId'
                 );
@@ -250,7 +263,7 @@ router.post(
             const existingDocument = await Book.getBookById(parsedId);
             if (!existingDocument)
                 throw new BadRequestError(
-                    'course does not exist with name and id'
+                    'book does not exist with name and id'
                 );
             const document = existingDocument[0];
             if (!document.version || !document.name)
@@ -271,6 +284,16 @@ router.post(
                 });
 
                 const allSkills = await Promise.all(promiseSkillArray);
+                const checkInvalidRelationship = allSkills.map((skill) => {
+                    if (
+                        skill.book &&
+                        skill.book.toString() !== parsedId.toString()
+                    ) {
+                        throw new BadRequestError(
+                            'this skill is already tied to a book'
+                        );
+                    }
+                });
 
                 // map and only keep ids to store in cpurse database
                 newSkillId = allSkills.map((skill) => {
@@ -288,6 +311,18 @@ router.post(
                 });
                 const allLanguages = await Promise.all(promiselanguageArray);
 
+                const checkInvalidRelationship = allLanguages.map(
+                    (language) => {
+                        if (
+                            language.book &&
+                            language.book.toString() !== parsedId.toString()
+                        )
+                            throw new BadRequestError(
+                                'this language is already tied to a different book'
+                            );
+                    }
+                );
+
                 // map and only keep ids to store in course database
                 newLanguageId = allLanguages.map((language) => {
                     return language._id;
@@ -300,7 +335,7 @@ router.post(
                 name: bookName,
                 bookAuthor: bookAuthor,
                 bookVersion: bookVersion,
-                learningStatus,
+                learningStatus: learningStatus,
                 version: newVersion,
                 skillId: newSkillId,
                 languageId: newLanguageId
