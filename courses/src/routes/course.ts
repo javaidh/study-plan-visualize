@@ -56,6 +56,13 @@ router.post(
 
                 const allSkills = await Promise.all(promiseSkillArray);
 
+                const checkInvalidRelationship = allSkills.map((skill) => {
+                    if (skill.course)
+                        throw new BadRequestError(
+                            'this skill is already tied to a course'
+                        );
+                });
+
                 // map and only keep ids to store in cpurse database
                 skillId = allSkills.map((skill) => {
                     return skill._id;
@@ -73,6 +80,14 @@ router.post(
 
                 const allLanguages = await Promise.all(promiselanguageArray);
 
+                const checkInvalidRelationship = allLanguages.map(
+                    (language) => {
+                        if (language.course)
+                            throw new BadRequestError(
+                                'this language is already tied to a different course'
+                            );
+                    }
+                );
                 // map and only keep ids to store in cpurse database
                 languageId = allLanguages.map((language) => {
                     return language._id;
@@ -276,6 +291,17 @@ router.post(
 
                 const allSkills = await Promise.all(promiseSkillArray);
 
+                const checkInvalidRelationship = allSkills.map((skill) => {
+                    if (
+                        skill.course &&
+                        skill.course.toString() !== parsedId.toString()
+                    ) {
+                        throw new BadRequestError(
+                            'this skill is already tied to a course'
+                        );
+                    }
+                });
+
                 // map and only keep ids to store in cpurse database
                 newSkillId = allSkills.map((skill) => {
                     return skill._id;
@@ -292,6 +318,17 @@ router.post(
                 });
                 const allLanguages = await Promise.all(promiselanguageArray);
 
+                const checkInvalidRelationship = allLanguages.map(
+                    (language) => {
+                        if (
+                            language.course &&
+                            language.course.toString() !== parsedId.toString()
+                        )
+                            throw new BadRequestError(
+                                'this language is already tied to a different course'
+                            );
+                    }
+                );
                 // map and only keep ids to store in course database
                 newLanguageId = allLanguages.map((language) => {
                     return language._id;

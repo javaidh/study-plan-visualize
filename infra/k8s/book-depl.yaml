@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: book-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: book
+  template:
+    metadata:
+      labels:
+        app: book
+    spec:
+      containers:
+        - name: book
+          image: areebaiftikhar/book:v1
+          env:
+            - name: NATS_URL
+              value: "http://nats-srv:4222"
+            - name: NATS_CLUSTER_ID
+              value: studyplan
+            - name: NATS_CLIENT_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: PORT
+              value: "3000"
+            - name: MONGO_DB_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: book-mongodb-uri
+                  key: URI
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: book-srv
+spec:
+  selector:
+    app: book
+  ports:
+    - name: book
+      protocol: TCP
+      port: 3000
+      targetPort: 3000

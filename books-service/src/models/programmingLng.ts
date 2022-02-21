@@ -5,26 +5,18 @@ import { connectDb } from '../services/mongodb';
 import { logErrorMessage } from '../errors/customError';
 import { DatabaseErrors } from '../errors/databaseErrors';
 
-export enum databaseStatus {
-    active = 'actve',
-    inactive = 'inactive'
-}
 interface returnProgrammingLngDocument {
-    _id: ObjectId;
+    _id?: ObjectId;
     name?: string;
-    course?: ObjectId;
     book?: ObjectId;
     version?: number;
-    dbStatus?: databaseStatus;
 }
 
 interface insertProgrammingLngDocument {
     _id?: ObjectId;
     name: string;
-    course?: ObjectId;
     book?: ObjectId;
     version: number;
-    dbStatus?: databaseStatus;
 }
 
 export class ProgrammingLng {
@@ -42,58 +34,11 @@ export class ProgrammingLng {
                 );
             const programmingCreated =
                 await ProgrammingLng.getProgrammingLngById(insertedId);
-
             return programmingCreated;
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors(
                 'Unable to create programming language in database either name in use or database operation failed'
-            );
-        }
-    }
-    static async getLanguageByName(
-        name: string,
-        dbStatus: databaseStatus
-    ): Promise<returnProgrammingLngDocument[] | undefined> {
-        try {
-            const db = await connectDb();
-            const result: WithId<returnProgrammingLngDocument>[] = await db
-                .collection('programming')
-                // you only want to return user password in case you are doing a password check
-                .find({ name, dbStatus })
-                .toArray();
-            if (!result)
-                throw new DatabaseErrors(
-                    'Unable to retrieve programming language from database'
-                );
-            return result;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'Unable to retrieve programming language from database'
-            );
-        }
-    }
-
-    static async getAllProgrammingLng(
-        dbStatus: databaseStatus
-    ): Promise<returnProgrammingLngDocument[] | undefined> {
-        try {
-            const db = await connectDb();
-            const result: WithId<returnProgrammingLngDocument>[] = await db
-                .collection('programming')
-                // you only want to return documents that are active in database
-                .find({ dbStatus })
-                .toArray();
-            if (!result)
-                throw new DatabaseErrors(
-                    'Unable to retrieve programming language from database'
-                );
-            return result;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'Unable to retrieve programming language from database'
             );
         }
     }
@@ -110,8 +55,7 @@ export class ProgrammingLng {
                 throw new DatabaseErrors(
                     'Unable to retrieve programming from database'
                 );
-            const document = result[0];
-            return document;
+            return result;
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors(
@@ -126,21 +70,41 @@ export class ProgrammingLng {
     ) {
         try {
             const db = await connectDb();
-            const result: WithId<returnProgrammingLngDocument>[] = await db
+            const result = await db
                 .collection('programming')
                 // you only want to return user password in case you are doing a password check
                 .find({ $and: [{ _id: _id }, { version: version }] })
                 .toArray();
-            if (!result)
+            if (!result.length)
                 throw new DatabaseErrors(
-                    'Unable to retrieve language from database'
+                    'Unable to retrieve skill from database'
+                );
+            const document = result[0];
+            return document;
+        } catch (err) {
+            logErrorMessage(err);
+            throw new DatabaseErrors('Unable to retrieve skill from database');
+        }
+    }
+
+    static async findProgrammingLngByIdAndname(_id: ObjectId, name: string) {
+        try {
+            const db = await connectDb();
+            const result: WithId<returnProgrammingLngDocument>[] = await db
+                .collection('programming')
+                // you only want to return user password in case you are doing a password check
+                .find({ $and: [{ _id: _id }, { name: name }] })
+                .toArray();
+            if (!result.length)
+                throw new DatabaseErrors(
+                    'Unable to retrieve programming language from database'
                 );
             const document = result[0];
             return document;
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors(
-                'Unable to retrieve language from database'
+                'Unable to retrieve programming language from database'
             );
         }
     }
@@ -151,14 +115,7 @@ export class ProgrammingLng {
             const result = await db
                 .collection('programming')
                 /// when we delete we dont remove database entry we just change the status to inactive
-                .updateOne(
-                    { _id },
-                    {
-                        $set: {
-                            dbStatus: databaseStatus.inactive
-                        }
-                    }
-                );
+                .deleteOne({ _id });
             return result.acknowledged;
         } catch (err) {
             logErrorMessage(err);
@@ -168,73 +125,28 @@ export class ProgrammingLng {
         }
     }
 
-    static async updateProgrammingLngByCourse(updateProps: {
+    static async updateLanguage(updateProps: {
         _id: ObjectId;
-        version: number;
-        course: ObjectId | undefined;
-    }) {
-        try {
-            const db = await connectDb();
-            const { _id, version, course } = updateProps;
-            const result: UpdateResult = await db
-                .collection('programming')
-                .updateOne(
-                    { _id },
-                    {
-                        $set: {
-                            version: version,
-                            course: course
-                        }
-                    }
-                );
-            return result.acknowledged;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors(
-                'Unable to retrieve programming language from database'
-            );
-        }
-    }
-
-    static async updateProgrammingLngByBook(updateProps: {
-        _id: ObjectId;
+        name: string;
         version: number;
         book: ObjectId | undefined;
     }) {
         try {
             const db = await connectDb();
-            const { _id, version, book } = updateProps;
+            const { _id, name, version, book } = updateProps;
             const result: UpdateResult = await db
                 .collection('programming')
                 .updateOne(
                     { _id },
                     {
                         $set: {
+                            name: name,
                             version: version,
                             book: book
                         }
                     }
                 );
-            return result.acknowledged;
-        } catch (err) {
-            logErrorMessage(err);
-            throw new DatabaseErrors('Unable to retrieve skill from database');
-        }
-    }
-
-    static async updateProgrammingLngName(updateProps: {
-        _id: ObjectId;
-        name: string;
-        version: number;
-    }) {
-        try {
-            const { _id, name, version } = updateProps;
-            const db = await connectDb();
-
-            const result: UpdateResult = await db
-                .collection('programming')
-                .updateOne({ _id }, { $set: { name: name, version: version } });
-            return result.acknowledged;
+            return result.modifiedCount === 1;
         } catch (err) {
             logErrorMessage(err);
             throw new DatabaseErrors(

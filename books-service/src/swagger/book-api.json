@@ -1,8 +1,8 @@
 {
     "openapi": "3.0.1",
     "info": {
-        "title": "programming-language-service",
-        "description": "This is a sample programming language microservice",
+        "title": "book-service",
+        "description": "This is a sample book microservice",
         "version": "1.0.0"
     },
     "servers": [
@@ -11,11 +11,11 @@
         }
     ],
     "paths": {
-        "/api/programming/{id}": {
+        "/api/book/{id}": {
             "get": {
-                "tags": ["programming"],
-                "summary": "get a programming language by id",
-                "operationId": "getProgrammingLanguage",
+                "tags": ["book"],
+                "summary": "get a single book by id",
+                "operationId": "getbook",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/id"
@@ -31,7 +31,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/components/schemas/ProgrammingLanguageData"
+                                                "$ref": "#/components/schemas/BookData"
                                             }
                                         }
                                     }
@@ -59,11 +59,11 @@
                 }
             }
         },
-        "/api/programming/all": {
+        "/api/book/all": {
             "get": {
-                "tags": ["programming"],
-                "summary": "retrieve all programming language from database",
-                "operationId": "getAllProgrammingLanguage",
+                "tags": ["book"],
+                "summary": "retrieve all book from database",
+                "operationId": "getAllbooks",
                 "responses": {
                     "200": {
                         "description": "successful operation",
@@ -74,7 +74,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/components/schemas/ProgrammingLanguageData"
+                                                "$ref": "#/components/schemas/BookData"
                                             }
                                         }
                                     }
@@ -102,71 +102,13 @@
                 }
             }
         },
-        "/api/programming/learning": {
+        "/api/book/destroy": {
             "post": {
-                "tags": ["programming"],
-                "summary": "retrieve learning statsu of a skill database",
-                "operationId": "getStatus",
+                "tags": ["book"],
+                "summary": "delete a book by id",
+                "operationId": "deletebook",
                 "requestBody": {
-                    "description": "add programming language to the backend",
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string"
-                                    },
-                                    "id": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "successful operation",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "type": "number"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "unsuccesful operation",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Errors"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/programming/destroy": {
-            "post": {
-                "tags": ["programming"],
-                "summary": "delete a programming language by id",
-                "operationId": "deleteTask",
-                "requestBody": {
-                    "description": "delete programming language from the backend",
+                    "description": "delete book from the backend",
                     "required": true,
                     "content": {
                         "application/json": {
@@ -215,20 +157,48 @@
                 }
             }
         },
-        "/api/programming/add": {
+        "/api/book/add": {
             "post": {
-                "tags": ["programming"],
-                "summary": "add a programming language",
-                "operationId": "addProgrammingLanguage",
+                "tags": ["book"],
+                "summary": "add a book",
+                "operationId": "addbook",
                 "requestBody": {
-                    "description": "add programming language to the backend",
+                    "description": "add book to the backend",
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "properties": {
+                                    "_id": {
+                                        "type": "string"
+                                    },
                                     "name": {
                                         "type": "string"
+                                    },
+                                    "bookAuthor": {
+                                        "nullable": true,
+                                        "type": "string"
+                                    },
+                                    "bookVersion": {
+                                        "nullable": true,
+                                        "type": "number"
+                                    },
+                                    "learningStatus": {
+                                        "type": "number"
+                                    },
+                                    "languages": {
+                                        "type": "array",
+                                        "nullable": true,
+                                        "items": {
+                                            "$ref": "#/components/schemas/LanguageData"
+                                        }
+                                    },
+                                    "skills": {
+                                        "type": "array",
+                                        "nullable": true,
+                                        "items": {
+                                            "$ref": "#/components/schemas/SkillData"
+                                        }
                                     }
                                 }
                             }
@@ -245,7 +215,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/components/schemas/ProgrammingLanguageData"
+                                                "$ref": "#/components/schemas/BookData"
                                             }
                                         }
                                     }
@@ -273,23 +243,48 @@
                 }
             }
         },
-        "/api/programming/update": {
+        "/api/book/update": {
             "post": {
-                "tags": ["programming"],
-                "summary": "edit a programming language",
-                "operationId": "EditProgrammingLanguage",
+                "tags": ["course"],
+                "summary": "edit a course",
+                "operationId": "EditCourse",
                 "requestBody": {
-                    "description": "edit programming language data in the backend",
+                    "description": "edit course data in the backend",
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "properties": {
-                                    "id": {
+                                    "_id": {
                                         "type": "string"
                                     },
                                     "name": {
                                         "type": "string"
+                                    },
+                                    "bookAuthor": {
+                                        "nullable": true,
+                                        "type": "string"
+                                    },
+                                    "bookVersion": {
+                                        "nullable": true,
+                                        "type": "number"
+                                    },
+                                    "learningStatus": {
+                                        "type": "number"
+                                    },
+                                    "languages": {
+                                        "type": "array",
+                                        "nullable": true,
+                                        "items": {
+                                            "$ref": "#/components/schemas/LanguageData"
+                                        }
+                                    },
+                                    "skills": {
+                                        "type": "array",
+                                        "nullable": true,
+                                        "items": {
+                                            "$ref": "#/components/schemas/SkillData"
+                                        }
                                     }
                                 }
                             }
@@ -306,7 +301,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/components/schemas/ProgrammingLanguageData"
+                                                "$ref": "#/components/schemas/BookData"
                                             }
                                         }
                                     }
@@ -340,7 +335,7 @@
             "id": {
                 "name": "id",
                 "in": "path",
-                "description": "programming language id values that need to be considered for filter",
+                "description": "course Id values that need to be considered for filter",
                 "required": true,
                 "schema": {
                     "type": "string"
@@ -360,7 +355,7 @@
                     }
                 }
             },
-            "ProgrammingLanguageData": {
+            "BookData": {
                 "type": "object",
                 "properties": {
                     "_id": {
@@ -372,24 +367,54 @@
                     "version": {
                         "type": "number"
                     },
-                    "dbStatus": {
-                        "type": "string"
+                    "bookAuthor": {
+                        "type": "string",
+                        "nullable": true
                     },
-                    "course": {
-                        "$ref": "#/components/schemas/Course"
+                    "bookVersion": {
+                        "type": "number",
+                        "nullable": true
                     },
-                    "books": {
-                        "$ref": "#/components/schemas/Book"
+                    "learningStatus": {
+                        "type": "number"
+                    },
+                    "skillId": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "languageId": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
-            "Course": {
-                "type": "string",
-                "nullable": true
+            "LanguageData": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
             },
-            "Book": {
-                "type": "string",
-                "nullable": true
+            "SkillData": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                    "_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
             }
         }
     }
