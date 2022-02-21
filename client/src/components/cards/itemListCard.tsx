@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import BookIcon from '@mui/icons-material/Book';
 
 type Item = {
     id?: string;
@@ -48,18 +49,11 @@ export const ItemList: React.FC<ItemListProps> = props => {
                         key={item.id}
                     >
                         <ListItemAvatar>
-                            {/*<img*/}
-                            {/*    alt={item.name}*/}
-                            {/*    src={item.imageUrl}*/}
-                            {/*    style={{*/}
-                            {/*        height: 48,*/}
-                            {/*        width: 48*/}
-                            {/*    }}*/}
-                            {/*/>*/}
+                            <BookIcon />
                         </ListItemAvatar>
                         <ListItemText
                             primary={item.name}
-                            secondary={`Updated ${formatDistanceToNow(item?.updatedAt || 0)}`}
+                            secondary={`Learned By: Test, test ,test`}
                         />
                         <IconButton
                             edge="end"

@@ -2,8 +2,9 @@ import * as React from "react";
 // Material UI Imports
 import {Box, Container, Grid} from "@mui/material";
 // Component Imports
-import { ProgressCard } from "./progressCard";
-import { ItemList } from "./itemListCard";
+import { ProgressCard } from "./cards/progressCard";
+import { ItemList } from "./cards/itemListCard";
+import { ItemsGridCard } from "./cards/itemsGridCard";
 // Util Imports
 import { products } from "../utils";
 
@@ -31,57 +32,75 @@ export const Layout:React.FC = () => (
                 </Grid>
                 <Grid
                     item
-                    lg={6}
-                    sm={6}
-                    xl={6}
+                    lg={3}
+                    sm={3}
+                    xl={3}
                     xs={12}
                 >
                     <ProgressCard title={"Skills Progress"} percentComplete={24.5} />
                 </Grid>
                 <Grid
                     item
-                    xl={6}
-                    lg={6}
-                    sm={6}
+                    xl={3}
+                    lg={3}
+                    sm={3}
                     xs={12}
                 >
                     <ProgressCard title={"Languages Progress"} percentComplete={96} />
                 </Grid>
                 <Grid
                     item
-                    xl={6}
-                    lg={6}
-                    sm={6}
-                    xs={12}
-                >
-                    <ItemList items={products} title={"Books List"} itemType={"Book"}  />
-                </Grid>
-                <Grid
-                    item
-                    xl={6}
-                    lg={6}
-                    sm={6}
-                    xs={12}
-                >
-                    <ItemList items={products} title={"Courses List"} itemType={"Course"}  />
-                </Grid>
-                <Grid
-                    item
-                    xl={6}
-                    lg={6}
-                    sm={6}
+                    xl={3}
+                    lg={3}
+                    sm={3}
                     xs={12}
                 >
                     <ProgressCard title={"Books Progress"} percentComplete={96} />
                 </Grid>
                 <Grid
                     item
+                    xl={3}
+                    lg={3}
+                    sm={3}
+                    xs={12}
+                >
+                    <ProgressCard title={"Courses Progress"} percentComplete={96} />
+                </Grid>
+                <Grid
+                    item
                     xl={6}
                     lg={6}
                     sm={6}
                     xs={12}
                 >
-                    <ProgressCard title={"Courses Progress"} percentComplete={96} />
+                    <ItemList items={products} title={"Skills List"} itemType={"Skill"}  />
+                </Grid>
+                <Grid
+                    item
+                    xl={6}
+                    lg={6}
+                    sm={6}
+                    xs={12}
+                >
+                    <ItemList items={products} title={"Languages List"} itemType={"Lanaguage"}  />
+                </Grid>
+                <Grid
+                    item
+                    xl={6}
+                    lg={6}
+                    sm={6}
+                    xs={12}
+                >
+                    <ItemsGridCard />
+                </Grid>
+                <Grid
+                    item
+                    xl={6}
+                    lg={6}
+                    sm={6}
+                    xs={12}
+                >
+                    <ItemsGridCard />
                 </Grid>
             </Grid>
         </Container>

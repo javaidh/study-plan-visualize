@@ -2,61 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c755462c-f1f2-4304-b277-20055f8ad401" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/books-service/.dockerignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/books-service/nats-wrapper.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/books-service/src/events/listeners.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/books-service/src/events/publishers.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/books-service/src/events/quegroup.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/books-service/src/models/book.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/books-service/src/models/programmingLng.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/books-service/src/models/skills.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/books-service/src/swagger/book-api.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/books-service/src/swagger/book-api.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/books-service/src/types/interfaceRequest.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/components/itemListCard.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/components/progressCard.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/utils.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/infra/k8s/book-depl.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/programming-lng-service/src/models/book.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/skills/Dockerfile.dev" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/skills/src/__mocks__/nats-wrapper.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/skills/src/app.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/skills/src/models/book.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/skills/src/routes/__test__/skills.test.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/skills/src/test/setup.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/components/cards/itemsGridCard.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/components/severitypill.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/books-service/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/books-service/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/books-service/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/books-service/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/books-service/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/books-service/src/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/books-service/src/routes/books.ts" beforeDir="false" afterPath="$PROJECT_DIR$/books-service/src/routes/books.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/books-service/src/services/mongodb.ts" beforeDir="false" afterPath="$PROJECT_DIR$/books-service/src/services/mongodb.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/books-service/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/books-service/tsconfig.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/BasicBox.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/itemListCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/cards/itemListCard.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/components/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/courses/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/books-service/Dockerfile.dev" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/courses/src/routes/course.ts" beforeDir="false" afterPath="$PROJECT_DIR$/courses/src/routes/course.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infra/k8s/client-depl.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/infra/k8s/client-depl.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infra/k8s/ingress-serv.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/infra/k8s/ingress-serv.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/programming-lng-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/courses/Dockerfile.dev" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/programming-lng-service/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/programming-lng-service/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/programming-lng-service/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/programming-lng-service/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/programming-lng-service/src/events/listeners.ts" beforeDir="false" afterPath="$PROJECT_DIR$/programming-lng-service/src/events/listeners.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/programming-lng-service/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/programming-lng-service/src/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/programming-lng-service/src/models/programmingLng.ts" beforeDir="false" afterPath="$PROJECT_DIR$/programming-lng-service/src/models/programmingLng.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/programming-lng-service/src/routes/programmingLng.ts" beforeDir="false" afterPath="$PROJECT_DIR$/programming-lng-service/src/routes/programmingLng.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/programming-lng-service/src/swagger/programming-api.json" beforeDir="false" afterPath="$PROJECT_DIR$/programming-lng-service/src/swagger/programming-api.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/programming-lng-service/src/swagger/programming-api.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/programming-lng-service/src/swagger/programming-api.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/skaffold.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/skaffold.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/skills/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/programming-lng-service/Dockerfile.dev" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/skills/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/skills/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/skills/src/events/listeners.ts" beforeDir="false" afterPath="$PROJECT_DIR$/skills/src/events/listeners.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/skills/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/skills/src/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/skills/src/models/skills.ts" beforeDir="false" afterPath="$PROJECT_DIR$/skills/src/models/skills.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/skills/src/routes/skills.ts" beforeDir="false" afterPath="$PROJECT_DIR$/skills/src/routes/skills.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/skills/src/swagger/skill-api.json" beforeDir="false" afterPath="$PROJECT_DIR$/skills/src/swagger/skill-api.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/skills/src/swagger/skill-api.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/skills/src/swagger/skill-api.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/progressCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/cards/progressCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -69,45 +22,47 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/client/src/App.tsx">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="266">
-              <caret line="14" column="20" selection-start-line="14" selection-start-column="20" selection-end-line="14" selection-end-column="20" />
-              <folding>
-                <element signature="e#47#100#0" expanded="true" />
-                <element signature="e#201#246#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/.gitignore">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="874">
-              <caret line="46" column="18" selection-start-line="46" selection-start-column="18" selection-end-line="46" selection-end-column="18" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/client/src/components/layout.tsx">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1235">
-              <caret line="65" column="87" selection-start-line="65" selection-start-column="87" selection-end-line="65" selection-end-column="87" />
+            <state relative-caret-position="1042">
+              <caret line="84" column="92" selection-start-line="84" selection-start-column="92" selection-end-line="84" selection-end-column="92" />
               <folding>
-                <element signature="e#110#156#0" expanded="true" />
+                <element signature="e#128#180#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/client/src/components/progressCard.tsx">
+        <entry file="file://$PROJECT_DIR$/client/src/components/severitypill.tsx">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="646">
-              <caret line="34" column="43" selection-start-line="34" selection-start-column="43" selection-end-line="34" selection-end-column="43" />
+            <state relative-caret-position="532">
+              <caret line="28" column="1" selection-start-line="28" selection-start-column="1" selection-end-line="28" selection-end-column="1" />
+              <folding>
+                <element signature="e#0#31#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/client/src/components/cards/itemsGridCard.tsx">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1517">
+              <caret line="101" column="39" selection-start-line="101" selection-start-column="39" selection-end-line="101" selection-end-column="39" />
+              <folding>
+                <element signature="e#0#31#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/client/src/components/cards/progressCard.tsx">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="456">
+              <caret line="24" column="35" lean-forward="true" selection-start-line="24" selection-start-column="35" selection-end-line="24" selection-end-column="35" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
               </folding>
@@ -137,10 +92,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/client/src/components/itemListCard.tsx">
+        <entry file="file://$PROJECT_DIR$/client/src/components/cards/itemListCard.tsx">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="363">
-              <caret line="32" column="34" selection-start-line="32" selection-start-column="34" selection-end-line="32" selection-end-column="34" />
+            <state relative-caret-position="738">
+              <caret line="46" column="28" selection-start-line="46" selection-start-column="28" selection-end-line="46" selection-end-column="28" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
               </folding>
@@ -149,35 +104,22 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/client/node_modules/@mui/material/ListItemText/ListItemText.d.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1292">
+              <caret line="72" column="24" selection-start-line="72" selection-start-column="24" selection-end-line="72" selection-end-column="24" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/client/src/utils.tsx">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="152">
-              <caret line="8" column="46" lean-forward="true" selection-start-line="8" selection-start-column="46" selection-end-line="8" selection-end-column="46" />
+              <caret line="8" column="46" selection-start-line="8" selection-start-column="46" selection-end-line="8" selection-end-column="46" />
               <folding>
                 <element signature="e#0#32#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/client/src/themes/index.ts">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="38">
-              <caret line="2" column="38" selection-start-line="2" selection-start-column="38" selection-end-line="2" selection-end-column="38" />
-              <folding>
-                <element signature="n#module:@mui/material/styles#0" />
-                <element signature="e#97#3671#0" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/client/src/index.tsx">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="19">
-              <caret line="1" column="33" selection-start-line="1" selection-start-column="33" selection-end-line="1" selection-end-column="33" />
             </state>
           </provider>
         </entry>
@@ -206,6 +148,10 @@
         <option value="$PROJECT_DIR$/client/src/components/header.tsx" />
         <option value="$PROJECT_DIR$/client/src/utils.tsx" />
         <option value="$PROJECT_DIR$/client/src/components/itemListCard.tsx" />
+        <option value="$PROJECT_DIR$/client/src/components/itemsGridCard.tsx" />
+        <option value="$PROJECT_DIR$/client/src/components/severitypill.tsx" />
+        <option value="$PROJECT_DIR$/client/src/components/cards/itemListCard.tsx" />
+        <option value="$PROJECT_DIR$/client/src/components/cards/itemsGridCard.tsx" />
         <option value="$PROJECT_DIR$/client/src/components/layout.tsx" />
       </list>
     </option>
@@ -249,6 +195,14 @@
             </path>
             <path>
               <item name="study-plan-visualize" type="b2602c69:ProjectViewProjectNode" />
+              <item name="study-plan-visualize" type="462c0819:PsiDirectoryNode" />
+              <item name="client" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="components" type="462c0819:PsiDirectoryNode" />
+              <item name="cards" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="study-plan-visualize" type="b2602c69:ProjectViewProjectNode" />
               <item name="Scratches and Consoles" type="1a2a3e82:ScratchProjectViewPane$MyProjectNode" />
             </path>
           </expand>
@@ -267,6 +221,11 @@
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="preferences.general" />
     <property name="ts.external.directory.path" value="$PROJECT_DIR$/client/node_modules/typescript/lib" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/client/src/components/cards" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -291,12 +250,12 @@
       <option name="presentableId" value="Default" />
       <updated>1645288342700</updated>
       <workItem from="1645288345214" duration="8505000" />
-      <workItem from="1645391337724" duration="6951000" />
+      <workItem from="1645391337724" duration="9957000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="15456000" />
+    <option name="totallyTimeSpent" value="18462000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1680" y="-1443" width="1440" height="2537" extended-state="6" />
@@ -514,6 +473,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/client/src/utils.tsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="152">
+          <caret line="8" column="46" selection-start-line="8" selection-start-column="46" selection-end-line="8" selection-end-column="46" />
+          <folding>
+            <element signature="e#0#32#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/client/src/components/header.tsx">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="513">
@@ -524,30 +493,54 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/client/src/utils.tsx">
+    <entry file="file://$PROJECT_DIR$/client/node_modules/@mui/material/ListItemText/ListItemText.d.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="152">
-          <caret line="8" column="46" lean-forward="true" selection-start-line="8" selection-start-column="46" selection-end-line="8" selection-end-column="46" />
-          <folding>
-            <element signature="e#0#32#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="1292">
+          <caret line="72" column="24" selection-start-line="72" selection-start-column="24" selection-end-line="72" selection-end-column="24" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/client/src/components/progressCard.tsx">
+    <entry file="file://$PROJECT_DIR$/client/node_modules/@mui/material/ListItem/ListItem.d.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="646">
-          <caret line="34" column="43" selection-start-line="34" selection-start-column="43" selection-end-line="34" selection-end-column="43" />
+        <state relative-caret-position="795">
+          <caret line="120" column="14" selection-start-line="120" selection-start-column="14" selection-end-line="120" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client/src/components/cards/itemListCard.tsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="738">
+          <caret line="46" column="28" selection-start-line="46" selection-start-column="28" selection-end-line="46" selection-end-column="28" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/client/src/components/itemListCard.tsx">
+    <entry file="file://$PROJECT_DIR$/client/src/components/cards/progressCard.tsx">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="363">
-          <caret line="32" column="34" selection-start-line="32" selection-start-column="34" selection-end-line="32" selection-end-column="34" />
+        <state relative-caret-position="456">
+          <caret line="24" column="35" lean-forward="true" selection-start-line="24" selection-start-column="35" selection-end-line="24" selection-end-column="35" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client/src/components/cards/itemsGridCard.tsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1517">
+          <caret line="101" column="39" selection-start-line="101" selection-start-column="39" selection-end-line="101" selection-end-column="39" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client/src/components/severitypill.tsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="532">
+          <caret line="28" column="1" selection-start-line="28" selection-start-column="1" selection-end-line="28" selection-end-column="1" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
           </folding>
@@ -556,10 +549,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/client/src/components/layout.tsx">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1235">
-          <caret line="65" column="87" selection-start-line="65" selection-start-column="87" selection-end-line="65" selection-end-column="87" />
+        <state relative-caret-position="1042">
+          <caret line="84" column="92" selection-start-line="84" selection-start-column="92" selection-end-line="84" selection-end-column="92" />
           <folding>
-            <element signature="e#110#156#0" expanded="true" />
+            <element signature="e#128#180#0" expanded="true" />
           </folding>
         </state>
       </provider>
